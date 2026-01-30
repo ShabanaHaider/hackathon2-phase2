@@ -46,13 +46,13 @@ export default function TaskForm({ onTaskCreated }: TaskFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
       {error && (
-        <div className="mb-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+        <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg">
           {error}
         </div>
       )}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div>
           <label htmlFor="task-title" className="sr-only">
             Task title
@@ -64,7 +64,7 @@ export default function TaskForm({ onTaskCreated }: TaskFormProps) {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What needs to be done?"
             maxLength={255}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+            className="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder-gray-400 transition-all duration-200"
             disabled={isLoading}
           />
         </div>
@@ -81,7 +81,7 @@ export default function TaskForm({ onTaskCreated }: TaskFormProps) {
               placeholder="Add a description (optional)"
               maxLength={2000}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 resize-none"
+              className="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder-gray-400 resize-none transition-all duration-200"
               disabled={isLoading}
             />
           </div>
@@ -89,7 +89,7 @@ export default function TaskForm({ onTaskCreated }: TaskFormProps) {
           <button
             type="button"
             onClick={() => setShowDescription(true)}
-            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1.5 transition-colors duration-200"
             disabled={isLoading}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,11 +99,11 @@ export default function TaskForm({ onTaskCreated }: TaskFormProps) {
           </button>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-1">
           <button
             type="submit"
             disabled={isLoading || !title.trim()}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-5 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all duration-200 shadow-sm hover:shadow"
           >
             {isLoading ? (
               <>
