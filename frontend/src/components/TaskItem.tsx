@@ -167,7 +167,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
         <button
           onClick={handleToggleComplete}
           disabled={isLoading}
-          className={`mt-0.5 w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
+          className={`mt-0.5 w-5 h-5 rounded-md border-2 shrink-0 flex items-center justify-center transition-all duration-200 ${
             task.is_completed
               ? "bg-gray-900 border-gray-900 text-white"
               : "border-gray-300 hover:border-gray-500"
@@ -204,7 +204,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
             )}
           </p>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex gap-2 shrink-0">
           <button
             onClick={() => setIsEditing(true)}
             disabled={isLoading}
