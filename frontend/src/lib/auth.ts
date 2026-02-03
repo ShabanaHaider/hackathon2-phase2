@@ -15,7 +15,8 @@ export const auth = betterAuth({
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
-    "https://hack2-phase2-frontend.vercel.app"
+    "https://hack2-phase2-frontend.vercel.app",
+    "https://hack2-phase2-frontend-lyqfs1cek-shabanahaiders-projects.vercel.app"
   ],
   emailAndPassword: {
     enabled: true,
@@ -31,7 +32,7 @@ export const auth = betterAuth({
   },
   advanced: {
     cookiePrefix: "better-auth",
-    useSecureCookies: true, // Set to false for localhost
+    useSecureCookies: process.env.NODE_ENV === "production", // Secure cookies in production only
   },
   plugins: [
     jwt({
