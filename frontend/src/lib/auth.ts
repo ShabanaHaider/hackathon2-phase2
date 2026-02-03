@@ -16,7 +16,6 @@ export const auth = betterAuth({
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
     "https://hack2-phase2-frontend.vercel.app",
-    "https://hack2-phase2-frontend-lyqfs1cek-shabanahaiders-projects.vercel.app"
   ],
   emailAndPassword: {
     enabled: true,
