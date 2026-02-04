@@ -29,7 +29,7 @@ class Task(SQLModel, table=True):
         default_factory=_utcnow,
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
-    user_id: str = Field(index=True)
+    user_id: str = Field(index=True, max_length=255)
 
 
 # --- Request / Response Schemas ---
