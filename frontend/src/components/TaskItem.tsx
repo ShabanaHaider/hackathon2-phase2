@@ -186,7 +186,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
               task.is_completed ? "text-gray-400 line-through" : "text-gray-900"
             }`}
           >
-            {task.title}
+            <span className="text-gray-500 text-sm">{String(task.id).slice(0, 8)}</span> {task.title}
           </h3>
           {task.description && (
             <p
