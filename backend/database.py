@@ -22,7 +22,14 @@ DATABASE_URL = re.sub(r"[&?]channel_binding=[^&]*", "", DATABASE_URL)
 # Replace sslmode with ssl (asyncpg uses 'ssl' not 'sslmode')
 DATABASE_URL = re.sub(r"sslmode=require", "ssl=require", DATABASE_URL)
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_size=5,
+    max_overflow=10,
+    pool_recycle=3600,
+    pool_pre_ping=True,
+)
 
 
 async def create_db_and_tables() -> None:
