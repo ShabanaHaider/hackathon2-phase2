@@ -14,6 +14,7 @@
     "better-auth": "^1.4.17",
     "drizzle-orm": "^0.45.1",
     "kysely": "^0.28.10",
+    "lightningcss-linux-x64-gnu": "^1.31.1",
     "next": "16.1.6",
     "pg": "^8.17.2",
     "postgres": "^3.4.8",
