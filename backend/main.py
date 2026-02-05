@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from database import create_db_and_tables
 from routers.todos import router as todos_router
+from routers.conversations import router as conversations_router
 
 
 @asynccontextmanager
@@ -23,14 +24,17 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_origins=["https://hack2-phase2-frontend-nvtoyo5y9-shabanahaiders-projects.vercel.app/"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://hack2-phase2-frontend-nvtoyo5y9-shabanahaiders-projects.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(todos_router, prefix="/api")
+app.include_router(conversations_router, prefix="/api")
 
 
 @app.exception_handler(Exception)
