@@ -9,6 +9,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from auth import get_current_user
 from database import get_session
 from models import (
+    ChatRequest,
+    ChatResponse,
     Conversation,
     ConversationCreate,
     ConversationResponse,
@@ -17,6 +19,7 @@ from models import (
     MessageCreate,
     MessageResponse,
 )
+from agent import run_agent, format_message_history
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -220,3 +223,102 @@ async def list_messages(
     )
     msg_result = await session.exec(msg_statement)
     return list(msg_result.all())
+
+
+# --- AI Agent Chat Endpoint ---
+
+
+@router.post(
+    "/{conversation_id}/chat",
+    response_model=ChatResponse,
+    status_code=200,
+)
+async def chat_with_agent(
+    conversation_id: uuid.UUID,
+    body: ChatRequest,
+    current_user: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> ChatResponse:
+    """
+    Send a message to the AI agent and receive a response.
+
+    This endpoint:
+    1. Verifies the conversation belongs to the user
+    2. Loads the last 20 messages for context
+    3. Saves the user's message
+    4. Invokes the AI agent with the message and context
+    5. Saves the agent's response
+    6. Returns both messages
+    """
+    user_id = current_user["user_id"]
+
+    # Verify conversation exists and belongs to the user
+    conv_statement = select(Conversation).where(
+        Conversation.id == conversation_id,
+        Conversation.user_id == user_id,
+    )
+    conv_result = await session.exec(conv_statement)
+    conversation = conv_result.first()
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    now = _utcnow()
+
+    # Load message history (last 20 messages for context)
+    history_statement = (
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.desc())
+        .limit(20)
+    )
+    history_result = await session.exec(history_statement)
+    history_messages = list(reversed(history_result.all()))
+
+    # Format history for the agent
+    message_history = format_message_history(history_messages)
+
+    # Save user message
+    user_message = Message(
+        conversation_id=conversation_id,
+        role="user",
+        content=body.message,
+        created_at=now,
+    )
+    session.add(user_message)
+
+    # Update conversation timestamp
+    conversation.updated_at = now
+    session.add(conversation)
+
+    # Commit user message first (so it's persisted even if agent fails)
+    await session.commit()
+    await session.refresh(user_message)
+
+    # Run the AI agent
+    agent_response = await run_agent(
+        user_id=user_id,
+        message=body.message,
+        message_history=message_history,
+    )
+
+    # Save assistant message
+    assistant_now = _utcnow()
+    assistant_message = Message(
+        conversation_id=conversation_id,
+        role="assistant",
+        content=agent_response,
+        created_at=assistant_now,
+    )
+    session.add(assistant_message)
+
+    # Update conversation timestamp again
+    conversation.updated_at = assistant_now
+    session.add(conversation)
+
+    await session.commit()
+    await session.refresh(assistant_message)
+
+    return ChatResponse(
+        user_message=MessageResponse.model_validate(user_message),
+        assistant_message=MessageResponse.model_validate(assistant_message),
+    )

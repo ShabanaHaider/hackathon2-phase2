@@ -141,3 +141,15 @@ class MessageResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- Chat Request / Response Schemas ---
+
+
+class ChatRequest(BaseModel):
+    message: str = PydanticField(min_length=1, max_length=16000)
+
+
+class ChatResponse(BaseModel):
+    user_message: MessageResponse
+    assistant_message: MessageResponse
