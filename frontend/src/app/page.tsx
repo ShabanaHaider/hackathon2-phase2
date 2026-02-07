@@ -138,7 +138,7 @@ function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps
             </div>
 
             {token ? (
-              <ChatContainer userId={user.id} token={token} />
+              <ChatContainer userId={user.id} token={token} onTaskChange={handleTaskCreated} />
             ) : (
               <div className="h-[500px] md:h-[600px] bg-white rounded-2xl border border-gray-200 shadow-sm flex items-center justify-center">
                 <div className="text-center text-gray-500">

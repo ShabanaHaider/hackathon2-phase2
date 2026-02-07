@@ -163,15 +163,19 @@ async def chat_with_agent(
     # T009: Get or create conversation
     conversation = await get_or_create_conversation(user_id, session)
 
+    # Store conversation_id before agent call to avoid MissingGreenlet error
+    # (MCP tools use synchronous DB operations which break async session context)
+    conversation_id = conversation.id
+
     # T010: Load message history
-    history_messages = await load_message_history(conversation.id, session)
+    history_messages = await load_message_history(conversation_id, session)
     message_history = format_message_history(history_messages)
 
     now = _utcnow()
 
     # T011: Persist user message BEFORE agent call (data integrity)
     user_message = Message(
-        conversation_id=conversation.id,
+        conversation_id=conversation_id,
         role="user",
         content=body.message,
         created_at=now,
@@ -185,6 +189,9 @@ async def chat_with_agent(
     # Commit user message first (survives agent failure)
     await session.commit()
     await session.refresh(user_message)
+
+    # Convert user_message to response BEFORE agent call (avoids detached session issues)
+    user_message_response = MessageResponse.model_validate(user_message)
 
     # T012: Invoke agent with message history
     try:
@@ -208,30 +215,34 @@ async def chat_with_agent(
             detail={
                 "error": "AI agent error",
                 "message": str(e),
-                "user_message": MessageResponse.model_validate(user_message).model_dump(),
+                "user_message": user_message_response.model_dump(),
             }
         )
 
     # T013: Persist assistant message
     assistant_now = _utcnow()
     assistant_message = Message(
-        conversation_id=conversation.id,
+        conversation_id=conversation_id,  # Use stored ID to avoid MissingGreenlet
         role="assistant",
         content=agent_response,
         created_at=assistant_now,
     )
     session.add(assistant_message)
 
-    # Update conversation timestamp
-    conversation.updated_at = assistant_now
-    session.add(conversation)
+    # Update conversation timestamp (re-fetch to avoid detached instance)
+    stmt = select(Conversation).where(Conversation.id == conversation_id)
+    result = await session.exec(stmt)
+    conversation = result.first()
+    if conversation:
+        conversation.updated_at = assistant_now
+        session.add(conversation)
 
     await session.commit()
     await session.refresh(assistant_message)
 
     # T014: Assemble response
     return UserChatResponse(
-        user_message=MessageResponse.model_validate(user_message),
+        user_message=user_message_response,  # Use pre-converted response
         assistant_message=MessageResponse.model_validate(assistant_message),
         tool_calls=tool_calls,
     )

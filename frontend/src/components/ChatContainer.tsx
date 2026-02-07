@@ -11,9 +11,10 @@ import ChatEmptyState from './ChatEmptyState';
 interface ChatContainerProps {
   userId: string;
   token: string;
+  onTaskChange?: () => void;
 }
 
-export default function ChatContainer({ userId, token }: ChatContainerProps) {
+export default function ChatContainer({ userId, token, onTaskChange }: ChatContainerProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -149,6 +150,11 @@ export default function ChatContainer({ userId, token }: ChatContainerProps) {
 
           return [...updated, assistantMessage];
         });
+
+        // Refresh task list if there were tool calls (task was modified)
+        if (response.tool_calls && response.tool_calls.length > 0 && onTaskChange) {
+          onTaskChange();
+        }
       } catch (err) {
         // Clear timeout
         if (stillThinkingTimeoutRef.current) {
