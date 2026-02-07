@@ -304,8 +304,8 @@ async def run_agent(
         # Add current user message
         messages.append({"role": "user", "content": message})
 
-        # Tool calling loop (max 3 iterations - 1 for add, 2-3 for update/delete/complete)
-        max_iterations = 3
+        # Tool calling loop (max 5 iterations - extra needed for text-based function parsing)
+        max_iterations = 5
         for _ in range(max_iterations):
             # Call Groq API - catch and handle failed_generation errors
             try:
@@ -420,8 +420,50 @@ async def run_agent(
                         title = arguments.get("title", "your task")
                         return (f"I've added '{title}' to your task list.", collected_tool_calls)
             else:
-                # No tool calls - return the response
-                response_text = assistant_message.content or "I'm not sure how to help with that. Would you like to see your tasks or create a new one?"
+                # No tool calls - check if model output function call as text
+                response_text = assistant_message.content or ""
+
+                # Check for function call pattern in text response
+                if "<function=" in response_text or "function=" in response_text:
+                    import re
+                    # Parse: <function=tool_name></function> or <function=tool_name {...}></function>
+                    func_match = re.search(r"function=(\w+)(?:[\s\(]*(\{[^}]*\}))?", response_text)
+                    if func_match:
+                        tool_name = func_match.group(1)
+                        args_str = func_match.group(2)
+                        try:
+                            arguments = json.loads(args_str) if args_str else {}
+                        except (json.JSONDecodeError, TypeError):
+                            arguments = {}
+
+                        # Execute the tool
+                        start_time = time.perf_counter()
+                        tool_result = execute_tool(tool_name, arguments, user_id)
+                        duration_ms = int((time.perf_counter() - start_time) * 1000)
+
+                        tool_info = {
+                            "name": tool_name,
+                            "arguments": arguments,
+                            "result": tool_result,
+                            "duration_ms": duration_ms,
+                        }
+                        collected_tool_calls.append(tool_info)
+                        print(f"[TOOL CALL FROM TEXT] {tool_name} | args={arguments} | duration={duration_ms}ms")
+
+                        # Add tool result to messages and continue the loop
+                        messages.append({
+                            "role": "assistant",
+                            "content": response_text,
+                        })
+                        messages.append({
+                            "role": "user",
+                            "content": f"Tool result: {tool_result}\n\nNow complete the user's request based on this information.",
+                        })
+                        continue  # Continue the loop to get final response
+
+                # No function calls found - return the response
+                if not response_text:
+                    response_text = "I'm not sure how to help with that. Would you like to see your tasks or create a new one?"
                 return (response_text, collected_tool_calls if collected_tool_calls else None)
 
         # If we've exhausted iterations, return last response
