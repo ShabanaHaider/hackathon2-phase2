@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { useSession, signOut } from "@/lib/auth-client";
+import { useSession, signOut, authClient } from "@/lib/auth-client";
 import TaskList from "@/components/TaskList";
 import TaskForm from "@/components/TaskForm";
+import ChatContainer from "@/components/ChatContainer";
 
 interface User {
   id: string;
@@ -19,6 +20,37 @@ interface AuthenticatedDashboardProps {
 
 function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps) {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [token, setToken] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'tasks' | 'chat'>('tasks');
+
+  // Get JWT token for API calls
+  useEffect(() => {
+    async function fetchToken() {
+      try {
+        // Try to get token from session/cookie
+        const response = await fetch('/api/auth/token', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.token) {
+            setToken(data.token);
+            return;
+          }
+        }
+        // Fallback: try using the session token from cookies
+        // The Better Auth JWT plugin should handle this
+        const session = await authClient.getSession();
+        if (session?.data?.session) {
+          // Use session token as fallback
+          setToken(session.data.session.token || null);
+        }
+      } catch (err) {
+        console.error('Failed to get token:', err);
+      }
+    }
+    fetchToken();
+  }, []);
 
   const handleTaskCreated = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
@@ -28,7 +60,7 @@ function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps
     <div className="min-h-screen bg-gray-100">
       {/* Navigation Header */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">Todo App</h1>
@@ -48,23 +80,78 @@ function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps
         </div>
       </nav>
 
+      {/* Tab Navigation (Mobile) */}
+      <div className="md:hidden bg-white border-b border-gray-200">
+        <div className="flex">
+          <button
+            onClick={() => setActiveTab('tasks')}
+            className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${
+              activeTab === 'tasks'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Tasks
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`flex-1 py-3 text-sm font-medium text-center border-b-2 transition-colors ${
+              activeTab === 'chat'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            AI Assistant
+          </button>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Welcome Header */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Your Tasks</h2>
-          <p className="mt-1 text-gray-600">
-            Manage your tasks and stay organized
-          </p>
-        </div>
+      <main className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Tasks Section */}
+          <div className={`${activeTab === 'chat' ? 'hidden md:block' : ''}`}>
+            {/* Welcome Header */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Your Tasks</h2>
+              <p className="mt-1 text-gray-600">
+                Manage your tasks and stay organized
+              </p>
+            </div>
 
-        {/* Task Form */}
-        <div className="mb-8">
-          <TaskForm onTaskCreated={handleTaskCreated} />
-        </div>
+            {/* Task Form */}
+            <div className="mb-6">
+              <TaskForm onTaskCreated={handleTaskCreated} />
+            </div>
 
-        {/* Task List */}
-        <TaskList refreshTrigger={refreshTrigger} />
+            {/* Task List */}
+            <TaskList refreshTrigger={refreshTrigger} />
+          </div>
+
+          {/* Chat Section */}
+          <div className={`${activeTab === 'tasks' ? 'hidden md:block' : ''}`}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">AI Assistant</h2>
+              <p className="mt-1 text-gray-600">
+                Chat with AI to manage your tasks
+              </p>
+            </div>
+
+            {token ? (
+              <ChatContainer userId={user.id} token={token} />
+            ) : (
+              <div className="h-[500px] md:h-[600px] bg-white rounded-2xl border border-gray-200 shadow-sm flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <svg className="animate-spin h-8 w-8 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p>Loading chat...</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </main>
     </div>
   );
