@@ -141,3 +141,26 @@ class MessageResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- User Chat API Schemas (Spec 7: Stateless Chat API) ---
+
+
+class ToolCallInfo(BaseModel):
+    """Information about a tool call made by the AI agent."""
+    name: str
+    arguments: dict
+    result: str
+    duration_ms: int
+
+
+class UserChatRequest(BaseModel):
+    """Request body for POST /api/{user_id}/chat."""
+    message: str = PydanticField(min_length=1, max_length=16000)
+
+
+class UserChatResponse(BaseModel):
+    """Response body for POST /api/{user_id}/chat."""
+    user_message: MessageResponse
+    assistant_message: MessageResponse
+    tool_calls: Optional[list[ToolCallInfo]] = None
