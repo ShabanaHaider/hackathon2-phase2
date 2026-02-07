@@ -13,37 +13,30 @@ export async function GET(req: NextRequest) {
       headers: req.headers,
     });
 
-    if (!session?.session) {
+    if (!session?.session || !session?.user) {
       return NextResponse.json(
         { error: "Not authenticated" },
         { status: 401 }
       );
     }
 
-    // The JWT plugin should have added a token to the session
-    // Try to get the token - it may be stored differently depending on config
-    const token = (session.session as any).token ||
-                  (session as any).token ||
-                  null;
+    // Use the JWT plugin's getToken method to generate a proper JWT
+    const jwtResponse = await auth.api.getToken({
+      headers: req.headers,
+    });
 
-    if (!token) {
-      // If no token in session, try to generate one using the JWT plugin
-      // This depends on Better Auth configuration
-      // For now, we'll return the session token which can be verified
-      return NextResponse.json(
-        {
-          token: session.session.token || null,
-          userId: session.user?.id,
-          error: token ? null : "JWT token not available, using session token"
-        },
-        { status: 200 }
-      );
+    if (jwtResponse?.token) {
+      return NextResponse.json({
+        token: jwtResponse.token,
+        userId: session.user.id,
+      });
     }
 
-    return NextResponse.json({
-      token,
-      userId: session.user?.id,
-    });
+    // Fallback: return error if JWT generation fails
+    return NextResponse.json(
+      { error: "Failed to generate JWT token" },
+      { status: 500 }
+    );
   } catch (error) {
     console.error("[Auth Token Error]", error);
     return NextResponse.json(
