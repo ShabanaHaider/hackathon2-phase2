@@ -28,6 +28,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://hack2-phase2-frontend-nvtoyo5y9-shabanahaiders-projects.vercel.app",
+        "https://bijamalo-web-todo-app.hf.space",
     ],
     allow_credentials=True,
     allow_methods=["*"],
