@@ -424,10 +424,13 @@ async def run_agent(
                 response_text = assistant_message.content or ""
 
                 # Check for function call pattern in text response
-                if "<function=" in response_text or "function=" in response_text:
+                if "<function" in response_text or "function=" in response_text:
                     import re
-                    # Parse: <function=tool_name></function> or <function=tool_name {...}></function>
-                    func_match = re.search(r"function=(\w+)(?:[\s\(]*(\{[^}]*\}))?", response_text)
+                    # Parse multiple formats:
+                    # - <function=tool_name></function>
+                    # - <function=tool_name {...}></function>
+                    # - <function:tool_name>{...}</function>
+                    func_match = re.search(r"function[=:](\w+)[>\s\(]*(\{[^}]*\})?", response_text)
                     if func_match:
                         tool_name = func_match.group(1)
                         args_str = func_match.group(2)
