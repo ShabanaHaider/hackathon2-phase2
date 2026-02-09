@@ -239,8 +239,11 @@ def _parse_failed_generation_direct(failed_gen: str, user_id: str) -> tuple | No
     """
     import re
 
-    # Parse format: <function=tool_name {"arg": "value"} </function> or <function=tool_name({"arg": "value"})></function>
-    func_match = re.search(r"function=(\w+)[\s\(]*(\{[^}]+\})", failed_gen)
+    # Parse multiple formats:
+    # - <function=tool_name {"arg": "value"} </function>
+    # - <function=tool_name({"arg": "value"})></function>
+    # - <function=tool_name [{"arg": "value"}]></function>
+    func_match = re.search(r"function[=:](\w+)[\s\(\[>]*(\{[^}]+\})", failed_gen)
     if not func_match:
         return None
 
@@ -430,7 +433,8 @@ async def run_agent(
                     # - <function=tool_name></function>
                     # - <function=tool_name {...}></function>
                     # - <function:tool_name>{...}</function>
-                    func_match = re.search(r"function[=:](\w+)[>\s\(]*(\{[^}]*\})?", response_text)
+                    # - <function=tool_name [{...}]></function>
+                    func_match = re.search(r"function[=:](\w+)[\s>\[\(]*(\{[^}]*\})?", response_text)
                     if func_match:
                         tool_name = func_match.group(1)
                         args_str = func_match.group(2)
