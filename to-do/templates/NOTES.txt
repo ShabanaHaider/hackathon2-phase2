@@ -1,0 +1,44 @@
+🎉 hack2-todo has been deployed successfully!
+
+{{- if .Values.backend.enabled }}
+
+📦 Backend (FastAPI):
+{{- if eq .Values.backend.service.type "NodePort" }}
+   Access via: http://$(minikube ip):{{ .Values.backend.service.nodePort }}
+   Or use: minikube service {{ include "hack2-todo.fullname" . }}-backend --url
+   API Docs: http://$(minikube ip):{{ .Values.backend.service.nodePort }}/docs
+{{- else }}
+   kubectl port-forward svc/{{ include "hack2-todo.fullname" . }}-backend {{ .Values.backend.service.port }}:{{ .Values.backend.service.port }}
+   Then access: http://localhost:{{ .Values.backend.service.port }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.frontend.enabled }}
+
+🌐 Frontend (Next.js):
+{{- if eq .Values.frontend.service.type "NodePort" }}
+   Access via: http://$(minikube ip):{{ .Values.frontend.service.nodePort }}
+   Or use: minikube service {{ include "hack2-todo.fullname" . }}-frontend --url
+{{- else }}
+   kubectl port-forward svc/{{ include "hack2-todo.fullname" . }}-frontend {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }}
+   Then access: http://localhost:{{ .Values.frontend.service.port }}
+{{- end }}
+{{- end }}
+
+📋 Useful Commands:
+
+   # Check pod status
+   kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+   # View logs
+   kubectl logs -l app.kubernetes.io/component=backend -f
+   kubectl logs -l app.kubernetes.io/component=frontend -f
+
+   # Get service URLs (Minikube)
+   minikube service list
+
+   # Describe deployments
+   kubectl describe deployment {{ include "hack2-todo.fullname" . }}-backend
+   kubectl describe deployment {{ include "hack2-todo.fullname" . }}-frontend
+
+⚠️  Note: Make sure your secrets are properly configured in values.yaml

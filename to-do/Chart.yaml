@@ -1,0 +1,20 @@
+apiVersion: v2
+name: hack2-todo
+description: A Helm chart for hack2-phase4 Todo application with FastAPI backend and Next.js frontend
+
+type: application
+
+# Chart version - increment when making changes to the chart
+version: 1.0.0
+
+# Application version
+appVersion: "1.0.0"
+
+keywords:
+  - todo
+  - fastapi
+  - nextjs
+  - fullstack
+
+maintainers:
+  - name: hack2-team

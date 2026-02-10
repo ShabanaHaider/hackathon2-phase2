@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "hack2-todo.fullname" . }}-test-connection"
+  labels:
+    {{- include "hack2-todo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: test-backend
+      image: busybox
+      command: ['wget']
+      args: ['--spider', '{{ include "hack2-todo.fullname" . }}-backend:{{ .Values.backend.service.port }}/docs']
+    - name: test-frontend
+      image: busybox
+      command: ['wget']
+      args: ['--spider', '{{ include "hack2-todo.fullname" . }}-frontend:{{ .Values.frontend.service.port }}']
+  restartPolicy: Never
