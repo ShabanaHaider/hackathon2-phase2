@@ -61,8 +61,12 @@ async function getToken(): Promise<string | null> {
 
 export async function apiClient<T>(
   path: string,
+<<<<<<< HEAD
   options: RequestInit = {},
   retryCount = 0
+=======
+  options: RequestInit = {}
+>>>>>>> origin/phase-IV
 ): Promise<T> {
   const token = await getToken();
 
@@ -79,6 +83,7 @@ export async function apiClient<T>(
     credentials: "include",
   });
 
+<<<<<<< HEAD
   // Handle 401 - retry once after a short delay (token timing issue)
   if (response.status === 401 && retryCount < 1) {
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -86,6 +91,9 @@ export async function apiClient<T>(
   }
 
   // Handle 401 after retry - throw error for component to handle
+=======
+  // Handle 401 - throw error for component to handle
+>>>>>>> origin/phase-IV
   if (response.status === 401) {
     throw new ApiException(401, "Not authenticated");
   }

@@ -12,6 +12,7 @@ export const authClient = createAuthClient({
 });
 
 export const { useSession, signIn, signUp, signOut } = authClient;
+<<<<<<< HEAD
 
 /**
  * Get JWT token for API calls
@@ -36,3 +37,5 @@ export async function getToken(): Promise<string | null> {
     return null;
   }
 }
+=======
+>>>>>>> origin/phase-IV

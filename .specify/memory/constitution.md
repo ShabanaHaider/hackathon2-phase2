@@ -1,6 +1,7 @@
 <!--
   Sync Impact Report
   ===================
+<<<<<<< HEAD
   Version change: 1.0.0 → 1.1.0
   Modified principles: None
   Added principles:
@@ -19,6 +20,25 @@
       standard user-story format)
     - `.specify/templates/tasks-template.md` — ✅ No update needed
       (MCP tool tasks and agent tasks fit existing phase/story structure)
+=======
+  Version change: 0.0.0 (template) → 1.0.0
+  Modified principles: N/A (initial population from template)
+  Added sections:
+    - Principle I: End-to-End Correctness
+    - Principle II: User Data Isolation and Security
+    - Principle III: Spec-Driven Agentic Development
+    - Principle IV: Framework-Idiomatic Implementation
+    - Principle V: RESTful API Design
+    - Principle VI: Environment-Based Secret Management
+    - Section: Technology Constraints
+    - Section: Development Workflow
+    - Governance rules
+  Removed sections: None (all template placeholders replaced)
+  Templates requiring updates:
+    - `.specify/templates/plan-template.md` — ✅ No update needed (generic; Constitution Check filled at plan time)
+    - `.specify/templates/spec-template.md` — ✅ No update needed (generic structure compatible)
+    - `.specify/templates/tasks-template.md` — ✅ No update needed (web app path convention already present)
+>>>>>>> origin/phase-IV
   Follow-up TODOs: None
 -->
 
@@ -104,6 +124,7 @@ variables. No secret may appear in source code, committed files, or logs.
 - Application code MUST read secrets from environment variables at runtime.
 - Documentation MUST include a `.env.example` with placeholder values.
 
+<<<<<<< HEAD
 ### VII. Agentic AI & Tool-Oriented Architecture
 
 All AI behavior MUST be implemented using explicit, auditable agents and
@@ -130,6 +151,8 @@ interactions.
 - AI agents MUST receive full context explicitly via message history.
 - System MUST remain resilient to server restarts.
 
+=======
+>>>>>>> origin/phase-IV
 ## Technology Constraints
 
 The following stack is mandatory for this project. Deviations require an
@@ -142,8 +165,11 @@ ADR with explicit justification.
 | ORM            | SQLModel                    | `fastapi-backend`        |
 | Database       | Neon Serverless PostgreSQL  | `neon-postgres-manager`  |
 | Authentication | Better Auth with JWT        | `auth-security`          |
+<<<<<<< HEAD
 | AI Agent SDK   | OpenAI Agents SDK           | `fastapi-backend`        |
 | MCP Server     | Official MCP SDK            | `fastapi-backend`        |
+=======
+>>>>>>> origin/phase-IV
 | Spec-Driven    | Claude Code + Spec-Kit Plus | N/A                      |
 
 ### Authentication Flow
@@ -154,6 +180,7 @@ ADR with explicit justification.
 4. Backend identifies user → decodes token for user ID, email, etc.
 5. Backend filters data → returns only resources belonging to that user
 
+<<<<<<< HEAD
 ### AI & MCP Constraints
 
 #### Model Context Protocol (MCP)
@@ -179,6 +206,8 @@ ADR with explicit justification.
   - Perform direct database queries
   - Assume implicit state
 
+=======
+>>>>>>> origin/phase-IV
 ### Loose Coupling Requirements
 
 - Frontend and backend MUST communicate only via REST API; no shared
@@ -186,6 +215,7 @@ ADR with explicit justification.
 - Backend and database MUST communicate only via SQLModel ORM; no raw
   SQL unless justified by an ADR.
 - Frontend MUST NOT directly access the database.
+<<<<<<< HEAD
 - AI agents MUST interact with data exclusively through MCP tools; no
   direct database access from agent logic.
 - All security-sensitive logic MUST reside in the backend and be
@@ -197,6 +227,11 @@ ADR with explicit justification.
 - The AI chatbot is an **additive interface**, not a replacement.
 - Manual Todo CRUD via REST MUST continue to work independently.
 
+=======
+- All security-sensitive logic MUST reside in the backend and be
+  verifiable and auditable.
+
+>>>>>>> origin/phase-IV
 ## Development Workflow
 
 ### Agentic Dev Stack Process
@@ -221,9 +256,12 @@ ADR with explicit justification.
 - Authentication MUST be enforced via JWT on every protected route.
 - Frontend, backend, and database MUST remain loosely coupled.
 - All security-sensitive logic MUST be verifiable and auditable.
+<<<<<<< HEAD
 - AI agents MUST operate exclusively through MCP tools for state mutation.
 - MCP tools MUST be stateless and database-backed.
 - AI interactions MUST NOT retain in-memory state between requests.
+=======
+>>>>>>> origin/phase-IV
 
 ### Success Criteria
 
@@ -232,8 +270,11 @@ ADR with explicit justification.
 - All API requests require valid JWT authentication.
 - Data persists correctly in PostgreSQL.
 - System can be reviewed and evaluated spec-by-spec.
+<<<<<<< HEAD
 - AI chatbot can manage tasks via natural language through MCP tools.
 - Existing REST API continues to function independently of AI chatbot.
+=======
+>>>>>>> origin/phase-IV
 
 ## Governance
 
@@ -252,4 +293,8 @@ constraints. All specs, plans, tasks, and implementations MUST comply.
 - **Runtime Guidance**: See `CLAUDE.md` for agent-specific development
   guidance and tool routing.
 
+<<<<<<< HEAD
 **Version**: 1.1.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-05
+=======
+**Version**: 1.0.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-27
+>>>>>>> origin/phase-IV

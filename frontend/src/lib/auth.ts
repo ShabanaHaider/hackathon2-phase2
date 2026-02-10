@@ -53,8 +53,13 @@ export const auth = betterAuth({
   },
   advanced: {
     cookiePrefix: "better-auth",
+<<<<<<< HEAD
     // Disable secure cookies for HTTP development
     useSecureCookies: false,
+=======
+    // CRITICAL FIX: In production, ensure cookies work across the domain
+    useSecureCookies: process.env.NODE_ENV === "production",
+>>>>>>> origin/phase-IV
     // Add explicit cross-origin configuration
     crossSubDomainCookies: {
       enabled: false, // Disable if not using subdomains

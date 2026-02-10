@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /mnt/d/projects/hack2-phase2 branch --show-current)",
+      "Bash(bash:*)",
+      "Bash(ls:*)",
+      "WebSearch",
+      "Bash(npx create-next-app:*)",
+      "Bash(npm install better-auth)",
+      "Bash(git fetch:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(.specify/scripts/bash/create-phr.sh:*)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

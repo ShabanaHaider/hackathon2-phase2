@@ -34,6 +34,7 @@ async def fetch_jwks() -> dict[str, Any]:
 
     # Use cached JWKS if available
     if _jwks_cache:
+<<<<<<< HEAD
         print(f"[AUTH DEBUG] Using cached JWKS")
         return _jwks_cache
 
@@ -41,10 +42,16 @@ async def fetch_jwks() -> dict[str, Any]:
     auth_url = os.environ.get("BETTER_AUTH_URL", BETTER_AUTH_URL)
     jwks_url = f"{auth_url}/api/auth/jwks"
     print(f"[AUTH DEBUG] Fetching JWKS from: {jwks_url}")
+=======
+        return _jwks_cache
+
+    jwks_url = f"{BETTER_AUTH_URL}/api/auth/jwks"
+>>>>>>> origin/phase-IV
 
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(jwks_url, timeout=10.0)
+<<<<<<< HEAD
             print(f"[AUTH DEBUG] JWKS response status: {response.status_code}")
             response.raise_for_status()
             _jwks_cache = response.json()
@@ -52,6 +59,12 @@ async def fetch_jwks() -> dict[str, Any]:
             return _jwks_cache
     except httpx.HTTPError as e:
         print(f"[AUTH DEBUG] JWKS fetch failed: {e}")
+=======
+            response.raise_for_status()
+            _jwks_cache = response.json()
+            return _jwks_cache
+    except httpx.HTTPError as e:
+>>>>>>> origin/phase-IV
         logger.error(f"Failed to fetch JWKS: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -112,13 +125,19 @@ async def get_current_user(
         )
 
     token = credentials.credentials
+<<<<<<< HEAD
     print(f"[AUTH DEBUG] Verifying token: {token[:50]}...")
+=======
+>>>>>>> origin/phase-IV
 
     try:
         # Get unverified header to find kid
         unverified_header = jwt.get_unverified_header(token)
         kid = unverified_header.get("kid")
+<<<<<<< HEAD
         print(f"[AUTH DEBUG] Token kid: {kid}")
+=======
+>>>>>>> origin/phase-IV
 
         # Fetch JWKS and get public key
         jwks = await fetch_jwks()

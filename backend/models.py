@@ -1,10 +1,18 @@
 import uuid
 from datetime import datetime, timezone
+<<<<<<< HEAD
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field as PydanticField
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Text
 from sqlmodel import Field, Relationship, SQLModel
+=======
+from typing import Optional
+
+from pydantic import BaseModel, Field as PydanticField
+from sqlalchemy import Column, DateTime
+from sqlmodel import Field, SQLModel
+>>>>>>> origin/phase-IV
 
 
 def _utcnow() -> datetime:
@@ -32,6 +40,7 @@ class Task(SQLModel, table=True):
     user_id: str = Field(index=True, max_length=255)
 
 
+<<<<<<< HEAD
 class Conversation(SQLModel, table=True):
     __tablename__ = "conversations"
 
@@ -77,6 +86,8 @@ class Message(SQLModel, table=True):
     conversation: Optional[Conversation] = Relationship(back_populates="messages")
 
 
+=======
+>>>>>>> origin/phase-IV
 # --- Request / Response Schemas ---
 
 
@@ -102,6 +113,7 @@ class TaskResponse(BaseModel):
     user_id: str
 
     model_config = {"from_attributes": True}
+<<<<<<< HEAD
 
 
 # --- Conversation Request / Response Schemas ---
@@ -164,3 +176,5 @@ class UserChatResponse(BaseModel):
     user_message: MessageResponse
     assistant_message: MessageResponse
     tool_calls: Optional[list[ToolCallInfo]] = None
+=======
+>>>>>>> origin/phase-IV

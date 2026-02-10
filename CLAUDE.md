@@ -268,6 +268,7 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
 
 ## Recent Changes
+<<<<<<< HEAD
 - 004-conversation-message-persistence: Plan completed — Conversation and Message SQLModel tables, user-scoped REST API at /api/conversations with nested /messages, cascade delete, chronological message ordering, no new dependencies
 - 003-todo-web-frontend: Plan completed — client-side data fetching with React hooks, no global state library (React Context + local state), thin API client with JWT injection, Tailwind CSS for responsive design, 7 implementation phases
 - 002-auth-jwt-security: Better Auth JWT integration implemented — JWKS asymmetric verification (EdDSA), route transition from /api/users/{user_id}/todos to /api/todos, PyJWT + cryptography for backend verification, auth pages scaffolded
@@ -277,3 +278,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon Serverless PostgreSQL (existing, via synchronous `sqlmodel.Session`) (005-mcp-server-task-tools)
 - Python 3.12 + OpenAI Agents SDK (`openai-agents`), existing MCP server (`mcp[cli]`) (006-ai-agent-tool-selection)
 - Existing Conversation/Message tables (Spec 4), Task table (Spec 1) (006-ai-agent-tool-selection)
+=======
+- 003-todo-web-frontend: Plan completed — client-side data fetching with React hooks, no global state library (React Context + local state), thin API client with JWT injection, Tailwind CSS for responsive design, 7 implementation phases
+- 002-auth-jwt-security: Better Auth JWT integration implemented — JWKS asymmetric verification (EdDSA), route transition from /api/users/{user_id}/todos to /api/todos, PyJWT + cryptography for backend verification, auth pages scaffolded
+- 001-task-crud-api: Added Neon Serverless PostgreSQL, FastAPI, SQLModel, asyncpg
+>>>>>>> origin/phase-IV

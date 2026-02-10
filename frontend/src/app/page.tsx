@@ -1,11 +1,19 @@
 "use client";
 
+<<<<<<< HEAD
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut, authClient } from "@/lib/auth-client";
 import TaskList from "@/components/TaskList";
 import TaskForm from "@/components/TaskForm";
 import ChatContainer from "@/components/ChatContainer";
+=======
+import { useState, useCallback } from "react";
+import Link from "next/link";
+import { useSession, signOut } from "@/lib/auth-client";
+import TaskList from "@/components/TaskList";
+import TaskForm from "@/components/TaskForm";
+>>>>>>> origin/phase-IV
 
 interface User {
   id: string;
@@ -20,6 +28,7 @@ interface AuthenticatedDashboardProps {
 
 function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps) {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+<<<<<<< HEAD
   const [token, setToken] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'tasks' | 'chat'>('tasks');
 
@@ -51,6 +60,8 @@ function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps
     }
     fetchToken();
   }, []);
+=======
+>>>>>>> origin/phase-IV
 
   const handleTaskCreated = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
@@ -60,7 +71,11 @@ function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps
     <div className="min-h-screen bg-gray-100">
       {/* Navigation Header */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
+<<<<<<< HEAD
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+=======
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+>>>>>>> origin/phase-IV
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">Todo App</h1>
@@ -80,6 +95,7 @@ function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps
         </div>
       </nav>
 
+<<<<<<< HEAD
       {/* Tab Navigation (Mobile) */}
       <div className="md:hidden bg-white border-b border-gray-200">
         <div className="flex">
@@ -152,6 +168,25 @@ function AuthenticatedDashboard({ user, onSignOut }: AuthenticatedDashboardProps
             )}
           </div>
         </div>
+=======
+      {/* Main Content */}
+      <main className="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Welcome Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Your Tasks</h2>
+          <p className="mt-1 text-gray-600">
+            Manage your tasks and stay organized
+          </p>
+        </div>
+
+        {/* Task Form */}
+        <div className="mb-8">
+          <TaskForm onTaskCreated={handleTaskCreated} />
+        </div>
+
+        {/* Task List */}
+        <TaskList refreshTrigger={refreshTrigger} />
+>>>>>>> origin/phase-IV
       </main>
     </div>
   );
