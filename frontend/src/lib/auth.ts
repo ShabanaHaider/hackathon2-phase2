@@ -33,15 +33,17 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://localhost:3030",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "http://172.26.56.163:3030",
+    "http://172.26.56.163:3000",
     "https://hack2-phase2-frontend.vercel.app",
   ],
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
-    // Add automatic account creation on signup
-    requireEmailVerification: false, // Disable for now to simplify debugging
+    requireEmailVerification: false,
   },
   session: {
     cookieCache: {
@@ -53,16 +55,10 @@ export const auth = betterAuth({
   },
   advanced: {
     cookiePrefix: "better-auth",
-<<<<<<< HEAD
     // Disable secure cookies for HTTP development
     useSecureCookies: false,
-=======
-    // CRITICAL FIX: In production, ensure cookies work across the domain
-    useSecureCookies: process.env.NODE_ENV === "production",
->>>>>>> origin/phase-IV
-    // Add explicit cross-origin configuration
     crossSubDomainCookies: {
-      enabled: false, // Disable if not using subdomains
+      enabled: false,
     },
   },
   plugins: [

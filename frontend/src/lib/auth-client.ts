@@ -12,7 +12,6 @@ export const authClient = createAuthClient({
 });
 
 export const { useSession, signIn, signUp, signOut } = authClient;
-<<<<<<< HEAD
 
 /**
  * Get JWT token for API calls
@@ -20,11 +19,6 @@ export const { useSession, signIn, signUp, signOut } = authClient;
  */
 export async function getToken(): Promise<string | null> {
   try {
-    // The jwtClient plugin adds a getToken method
-    const token = await authClient.getSession();
-    // Better Auth stores the token in the session
-    // We need to get the actual JWT - it may be in cookies or returned by the session
-    // For now, we'll use a workaround: fetch the token endpoint
     const response = await fetch('/api/auth/token', {
       credentials: 'include',
     });
@@ -37,5 +31,3 @@ export async function getToken(): Promise<string | null> {
     return null;
   }
 }
-=======
->>>>>>> origin/phase-IV
