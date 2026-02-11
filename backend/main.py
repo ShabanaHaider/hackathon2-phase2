@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -8,6 +9,9 @@ from database import create_db_and_tables
 from routers.todos import router as todos_router
 from routers.conversations import router as conversations_router
 from routers.chat import router as chat_router
+
+# Read CORS origins from environment variable (comma-separated)
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3030").split(",")
 
 
 @asynccontextmanager
@@ -25,13 +29,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://172.26.56.163:3000",
-        "http://172.26.56.163:3030",
-        "https://hack2-phase2-frontend-nvtoyo5y9-shabanahaiders-projects.vercel.app",
-        "https://bijamalo-web-todo-app.hf.space",
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

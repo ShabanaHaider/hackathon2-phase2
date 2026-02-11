@@ -1,0 +1,23 @@
+# Environment files (contain secrets)
+.env
+*.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+
+# Helm values with secrets
+to-do/values.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
