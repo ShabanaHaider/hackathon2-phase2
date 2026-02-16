@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Task, api, ApiException } from "@/lib/api";
+import PriorityBadge from "./PriorityBadge";
+import TagSelector from "./TagSelector";
 
 interface TaskItemProps {
   task: Task;
@@ -9,10 +11,32 @@ interface TaskItemProps {
   onDelete: () => void;
 }
 
+function isOverdue(task: Task): boolean {
+  if (!task.due_at || task.is_completed) return false;
+  return new Date(task.due_at) < new Date();
+}
+
+function formatDueDate(dueAt: string): string {
+  const date = new Date(dueAt);
+  const now = new Date();
+  const diff = date.getTime() - now.getTime();
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+  if (days < 0) return `${Math.abs(days)}d overdue`;
+  if (days === 0) return "Due today";
+  if (days === 1) return "Due tomorrow";
+  return `Due ${date.toLocaleDateString()}`;
+}
+
 export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || "");
+  const [editPriority, setEditPriority] = useState(task.priority);
+  const [editDueAt, setEditDueAt] = useState(
+    task.due_at ? new Date(task.due_at).toISOString().slice(0, 16) : ""
+  );
+  const [editTagNames, setEditTagNames] = useState<string[]>(task.tags?.map((t) => t.name) || []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,6 +71,9 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
       await api.updateTask(task.id, {
         title: editTitle.trim(),
         description: editDescription.trim() || undefined,
+        priority: editPriority,
+        due_at: editDueAt ? new Date(editDueAt).toISOString() : null,
+        tag_names: editTagNames,
       });
       setIsEditing(false);
       onUpdate();
@@ -64,6 +91,9 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   const handleCancelEdit = () => {
     setEditTitle(task.title);
     setEditDescription(task.description || "");
+    setEditPriority(task.priority);
+    setEditDueAt(task.due_at ? new Date(task.due_at).toISOString().slice(0, 16) : "");
+    setEditTagNames(task.tags?.map((t) => t.name) || []);
     setIsEditing(false);
     setError("");
   };
@@ -125,6 +155,35 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
               disabled={isLoading}
             />
           </div>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Priority</label>
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(e.target.value as "low" | "medium" | "high")}
+                disabled={isLoading}
+                className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-400"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Due date</label>
+              <input
+                type="datetime-local"
+                value={editDueAt}
+                onChange={(e) => setEditDueAt(e.target.value)}
+                disabled={isLoading}
+                className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">Tags</label>
+            <TagSelector selectedTags={editTagNames} onChange={setEditTagNames} disabled={isLoading} />
+          </div>
           <div className="flex gap-3 justify-end pt-2">
             <button
               onClick={handleCancelEdit}
@@ -156,8 +215,12 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     );
   }
 
+  const overdue = isOverdue(task);
+
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 ${isLoading ? "opacity-50" : ""}`}>
+    <div className={`bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 ${
+      overdue ? "border-red-300" : "border-gray-200"
+    } ${isLoading ? "opacity-50" : ""}`}>
       {error && (
         <div className="mb-3 text-sm text-red-700 bg-red-50 border border-red-200 p-2.5 rounded-lg">
           {error}
@@ -181,15 +244,18 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
           )}
         </button>
         <div className="flex-1 min-w-0">
-          <h3
-            className={`text-base font-semibold ${
-              task.is_completed ? "text-gray-400 line-through" : "text-gray-900"
-            }`}
-          >
-            <span className="text-gray-400 text-xs font-mono">{String(task.id).slice(0, 8)}</span>
-            <span className="text-gray-300 mx-2">—</span>
-            {task.title}
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3
+              className={`text-base font-semibold ${
+                task.is_completed ? "text-gray-400 line-through" : "text-gray-900"
+              }`}
+            >
+              <span className="text-gray-400 text-xs font-mono">{String(task.id).slice(0, 8)}</span>
+              <span className="text-gray-300 mx-2">&mdash;</span>
+              {task.title}
+            </h3>
+            <PriorityBadge priority={task.priority} />
+          </div>
           {task.description && (
             <p
               className={`mt-1.5 text-sm leading-relaxed ${
@@ -199,12 +265,35 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
               {task.description}
             </p>
           )}
-          <p className="mt-2.5 text-xs text-gray-400 font-medium">
-            Created {new Date(task.created_at).toLocaleDateString()}
+          {/* Tags */}
+          {task.tags && task.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {task.tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full border border-gray-200"
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="mt-2.5 flex items-center gap-3 text-xs text-gray-400 font-medium flex-wrap">
+            <span>Created {new Date(task.created_at).toLocaleDateString()}</span>
             {task.is_completed && task.completed_at && (
-              <span> · Completed {new Date(task.completed_at).toLocaleDateString()}</span>
+              <span>Completed {new Date(task.completed_at).toLocaleDateString()}</span>
             )}
-          </p>
+            {task.due_at && (
+              <span className={overdue ? "text-red-600 font-semibold" : "text-gray-500"}>
+                {formatDueDate(task.due_at)}
+              </span>
+            )}
+            {task.is_recurring && task.recurrence_pattern && (
+              <span className="text-purple-600">
+                Recurring ({task.recurrence_pattern})
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-2 shrink-0">
           <button

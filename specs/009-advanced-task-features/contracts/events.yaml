@@ -1,0 +1,367 @@
+asyncapi: 2.6.0
+info:
+  title: Task Events API
+  version: 1.0.0
+  description: Event schemas for task-related Pub/Sub messaging via Dapr
+
+servers:
+  dapr:
+    url: localhost:3500
+    protocol: http
+    description: Dapr sidecar for Pub/Sub operations
+
+channels:
+  task-events:
+    description: Events published when tasks are created, updated, completed, or deleted
+    publish:
+      operationId: publishTaskEvent
+      message:
+        oneOf:
+          - $ref: '#/components/messages/TaskCreated'
+          - $ref: '#/components/messages/TaskUpdated'
+          - $ref: '#/components/messages/TaskCompleted'
+          - $ref: '#/components/messages/TaskDeleted'
+    subscribe:
+      operationId: subscribeTaskEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/TaskCreated'
+          - $ref: '#/components/messages/TaskUpdated'
+          - $ref: '#/components/messages/TaskCompleted'
+          - $ref: '#/components/messages/TaskDeleted'
+
+  reminders:
+    description: Events published when task reminders are due
+    publish:
+      operationId: publishReminder
+      message:
+        $ref: '#/components/messages/ReminderDue'
+    subscribe:
+      operationId: subscribeReminders
+      message:
+        $ref: '#/components/messages/ReminderDue'
+
+  notifications:
+    description: Events for user notifications (consumed by notification service)
+    subscribe:
+      operationId: subscribeNotifications
+      message:
+        $ref: '#/components/messages/NotificationRequest'
+
+components:
+  messages:
+    TaskCreated:
+      name: task.created
+      title: Task Created Event
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TaskEvent'
+      headers:
+        $ref: '#/components/schemas/EventHeaders'
+
+    TaskUpdated:
+      name: task.updated
+      title: Task Updated Event
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TaskEvent'
+      headers:
+        $ref: '#/components/schemas/EventHeaders'
+
+    TaskCompleted:
+      name: task.completed
+      title: Task Completed Event
+      description: Published when a task is marked as completed. Recurring Task Service subscribes to this.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TaskEvent'
+      headers:
+        $ref: '#/components/schemas/EventHeaders'
+
+    TaskDeleted:
+      name: task.deleted
+      title: Task Deleted Event
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TaskDeletedEvent'
+      headers:
+        $ref: '#/components/schemas/EventHeaders'
+
+    ReminderDue:
+      name: reminder.due
+      title: Reminder Due Event
+      description: Published when a task with due_at reaches its reminder time
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ReminderEvent'
+      headers:
+        $ref: '#/components/schemas/EventHeaders'
+
+    NotificationRequest:
+      name: notification.request
+      title: Notification Request
+      description: Request to send a notification to a user
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/NotificationEvent'
+      headers:
+        $ref: '#/components/schemas/EventHeaders'
+
+  schemas:
+    EventHeaders:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+          description: Unique identifier for idempotent processing
+        event_type:
+          type: string
+          description: Type of event (e.g., task.created, task.completed)
+        timestamp:
+          type: string
+          format: date-time
+          description: When the event was created (ISO 8601 UTC)
+        version:
+          type: string
+          description: Schema version for backward compatibility
+          example: "1.0"
+      required:
+        - event_id
+        - event_type
+        - timestamp
+        - version
+
+    TaskEventPayload:
+      type: object
+      description: Full task data at time of event
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_completed:
+          type: boolean
+        priority:
+          type: string
+          enum: [low, medium, high]
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_recurring:
+          type: boolean
+        recurrence_pattern:
+          type: string
+          enum: [daily, weekly, monthly]
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tag names (not IDs) for easier consumer processing
+      required:
+        - id
+        - title
+        - is_completed
+        - priority
+        - is_recurring
+        - tags
+
+    TaskEvent:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          enum: [task.created, task.updated, task.completed]
+        user_id:
+          type: string
+          description: Owner of the task
+        task_id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0"
+        payload:
+          $ref: '#/components/schemas/TaskEventPayload'
+      required:
+        - event_id
+        - event_type
+        - user_id
+        - task_id
+        - timestamp
+        - version
+        - payload
+
+    TaskDeletedEvent:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          const: task.deleted
+        user_id:
+          type: string
+        task_id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0"
+        payload:
+          type: object
+          properties:
+            title:
+              type: string
+              description: Title of deleted task for logging/audit
+          required:
+            - title
+      required:
+        - event_id
+        - event_type
+        - user_id
+        - task_id
+        - timestamp
+        - version
+        - payload
+
+    ReminderEvent:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          const: reminder.due
+        user_id:
+          type: string
+        task_id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0"
+        payload:
+          type: object
+          properties:
+            title:
+              type: string
+            due_at:
+              type: string
+              format: date-time
+            priority:
+              type: string
+              enum: [low, medium, high]
+          required:
+            - title
+            - due_at
+            - priority
+      required:
+        - event_id
+        - event_type
+        - user_id
+        - task_id
+        - timestamp
+        - version
+        - payload
+
+    NotificationEvent:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          const: notification.request
+        user_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0"
+        payload:
+          type: object
+          properties:
+            notification_type:
+              type: string
+              enum: [reminder, recurring_created]
+            title:
+              type: string
+            message:
+              type: string
+            task_id:
+              type: string
+              format: uuid
+          required:
+            - notification_type
+            - title
+            - message
+      required:
+        - event_id
+        - event_type
+        - user_id
+        - timestamp
+        - version
+        - payload
+
+  # Dapr Component Definitions
+  x-dapr-components:
+    pubsub-kafka:
+      type: pubsub.kafka
+      version: v1
+      metadata:
+        - name: brokers
+          secretKeyRef:
+            name: kafka-credentials
+            key: brokers
+        - name: authType
+          value: password
+        - name: saslUsername
+          secretKeyRef:
+            name: kafka-credentials
+            key: username
+        - name: saslPassword
+          secretKeyRef:
+            name: kafka-credentials
+            key: password
+
+  # Service Subscriptions
+  x-dapr-subscriptions:
+    recurring-task-service:
+      pubsubname: pubsub-kafka
+      topic: task-events
+      route: /events/task-completed
+      metadata:
+        rawPayload: "true"
+
+    notification-service:
+      pubsubname: pubsub-kafka
+      topics:
+        - reminders
+        - notifications
+      routes:
+        reminders: /events/reminder-due
+        notifications: /events/notification

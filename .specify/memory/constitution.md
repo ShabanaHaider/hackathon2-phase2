@@ -1,44 +1,43 @@
 <!--
   Sync Impact Report
   ===================
-<<<<<<< HEAD
-  Version change: 1.0.0 → 1.1.0
-  Modified principles: None
-  Added principles:
+  Version change: 1.1.0 → 2.0.0
+
+  Modified principles:
+    - Principle I: End-to-End Correctness → Cross-Service End-to-End Correctness
+      (Expanded to include Dapr, Kafka, and dependent microservices validation)
+    - Principle III: Spec-Driven Agentic Development → Multi-Service Spec-Driven Development
+      (Expanded to require event schema definitions and service responsibility specs)
     - Principle VII: Agentic AI & Tool-Oriented Architecture
+      (Expanded: MCP tools MUST publish events via Dapr after state mutation)
     - Principle VIII: Stateless AI Interactions with Persistent Memory
+      (Extended to microservices; event consumers derive state from DB/payload)
+
+  Added principles:
+    - Principle IX: Event-Driven Architecture & Pub/Sub Discipline
+    - Principle X: Cloud-Native & Deployability Requirements
+    - Principle XI: Backward Compatibility & Additive Evolution
+
   Added sections:
-    - AI & MCP Constraints (Model Context Protocol, OpenAI Agents SDK)
-    - Compatibility Guarantee
+    - Advanced Todo Domain Rules (Intermediate + Advanced features)
+    - Microservices Architecture Rules
+    - Dapr Abstraction Requirements
+    - Kafka Integration Policy
+    - CI/CD & Cloud Governance (within Governance section)
+
   Removed sections: None
+
   Templates requiring updates:
     - `.specify/templates/plan-template.md` — ✅ No update needed
       (generic; Constitution Check filled at plan time; new principles
-      will be checked dynamically)
+      will be checked dynamically including event-driven requirements)
     - `.specify/templates/spec-template.md` — ✅ No update needed
-      (generic structure compatible; AI chatbot features will use
-      standard user-story format)
+      (generic structure compatible; event schemas and Dapr specs
+      will be added as needed per feature)
     - `.specify/templates/tasks-template.md` — ✅ No update needed
-      (MCP tool tasks and agent tasks fit existing phase/story structure)
-=======
-  Version change: 0.0.0 (template) → 1.0.0
-  Modified principles: N/A (initial population from template)
-  Added sections:
-    - Principle I: End-to-End Correctness
-    - Principle II: User Data Isolation and Security
-    - Principle III: Spec-Driven Agentic Development
-    - Principle IV: Framework-Idiomatic Implementation
-    - Principle V: RESTful API Design
-    - Principle VI: Environment-Based Secret Management
-    - Section: Technology Constraints
-    - Section: Development Workflow
-    - Governance rules
-  Removed sections: None (all template placeholders replaced)
-  Templates requiring updates:
-    - `.specify/templates/plan-template.md` — ✅ No update needed (generic; Constitution Check filled at plan time)
-    - `.specify/templates/spec-template.md` — ✅ No update needed (generic structure compatible)
-    - `.specify/templates/tasks-template.md` — ✅ No update needed (web app path convention already present)
->>>>>>> origin/phase-IV
+      (MCP tool tasks, event publishing tasks, and microservice tasks
+      fit existing phase/story structure)
+
   Follow-up TODOs: None
 -->
 
@@ -46,19 +45,30 @@
 
 ## Core Principles
 
-### I. End-to-End Correctness
+### I. Cross-Service End-to-End Correctness
 
-Every feature MUST be verified across all three layers — frontend (Next.js),
-backend (FastAPI), and database (Neon PostgreSQL) — before it is considered
-complete. A feature that works in isolation on one layer but fails at
-integration boundaries is not done.
+A feature is complete only when it functions correctly across all layers:
 
-- All API contracts MUST be validated with matching frontend calls and
-  database queries.
-- Data round-trips (create → read → update → delete) MUST be tested
-  through the full stack.
-- Type mismatches between frontend requests, backend Pydantic/SQLModel
-  schemas, and database columns MUST be caught before merge.
+- Frontend (Next.js)
+- Backend API (FastAPI)
+- Database (PostgreSQL)
+- Dapr Sidecar
+- Event Bus (Kafka)
+- Dependent Microservices
+
+For Phase V:
+
+- Event publishing MUST be verified.
+- Event consumption MUST be validated.
+- Recurring tasks MUST regenerate correctly.
+- Reminder scheduling MUST trigger reliably.
+- No silent event failures are allowed.
+
+All API contracts MUST be validated with matching frontend calls, database
+queries, and event publications. Data round-trips (create → read → update →
+delete) MUST be tested through the full stack including event propagation.
+Type mismatches between frontend requests, backend Pydantic/SQLModel schemas,
+database columns, and event payloads MUST be caught before merge.
 
 ### II. User Data Isolation and Security
 
@@ -74,7 +84,14 @@ delete another user's data under any circumstance.
 - Authorization checks MUST be enforced at the backend; frontend checks
   are supplementary, never sufficient.
 
-### III. Spec-Driven Agentic Development
+Extended to microservices:
+
+- Every microservice MUST validate JWT where required.
+- Events MUST carry user context explicitly.
+- Services MUST NOT trust upstream payloads without validation.
+- No cross-user event processing permitted.
+
+### III. Multi-Service Spec-Driven Development
 
 All implementation MUST originate from written specifications and plans.
 No manual coding is allowed outside the Claude Code agentic workflow.
@@ -86,6 +103,21 @@ No manual coding is allowed outside the Claude Code agentic workflow.
 - Implementation tasks MUST reference their parent spec and plan.
 - Changes not traceable to a spec are out of scope and MUST be rejected
   or formally specified first.
+
+Phase V requires spec discipline across services. Every feature MUST include:
+
+- Feature spec
+- Event schema definition
+- Dapr component spec
+- Service responsibility spec
+
+No microservice may be created without:
+
+- Explicit contract
+- Defined topic subscriptions
+- Failure handling behavior
+
+All logic MUST remain traceable to a spec.
 
 ### IV. Framework-Idiomatic Implementation
 
@@ -101,7 +133,14 @@ patterns and conventions. Do not fight the framework.
 - Better Auth: Use its built-in session management and JWT issuance;
   do not roll custom auth logic.
 
-### V. RESTful API Design
+Existing rules remain, plus:
+
+- Dapr MUST be used idiomatically (sidecar model).
+- Kafka MUST NOT be accessed directly from application services.
+- Pub/Sub MUST go through Dapr HTTP/gRPC APIs only.
+- No raw Kafka client libraries allowed in app services.
+
+### V. RESTful API Design (Additive Only)
 
 All API endpoints MUST follow REST conventions and be user-scoped.
 
@@ -112,6 +151,15 @@ All API endpoints MUST follow REST conventions and be user-scoped.
   authenticated user.
 - Error responses MUST use standard HTTP status codes with consistent
   JSON error bodies.
+
+Phase V expands capabilities but MUST NOT break:
+
+- Existing `/api/todos` endpoints
+- Authentication model
+- JWT verification logic
+
+All new fields (priority, due_at, recurrence, tags) MUST be additive.
+No breaking changes allowed.
 
 ### VI. Environment-Based Secret Management
 
@@ -124,7 +172,15 @@ variables. No secret may appear in source code, committed files, or logs.
 - Application code MUST read secrets from environment variables at runtime.
 - Documentation MUST include a `.env.example` with placeholder values.
 
-<<<<<<< HEAD
+Extended to include:
+
+- Kafka broker credentials
+- Dapr component configs
+- Cloud deployment secrets
+- CI/CD secrets
+
+Secrets MUST be injected via environment variables or Kubernetes secrets.
+
 ### VII. Agentic AI & Tool-Oriented Architecture
 
 All AI behavior MUST be implemented using explicit, auditable agents and
@@ -136,9 +192,17 @@ tools. The AI model MUST NOT directly mutate application state.
 - Tool schemas are the single source of truth for task operations.
 
 This ensures:
+
 - Deterministic state changes
 - Auditable AI behavior
 - Clear separation of reasoning vs execution
+
+Expanded for event-driven architecture:
+
+- Agents MUST publish events when task mutations occur.
+- Agents MUST remain unaware of Kafka directly.
+- Agents operate strictly through MCP tools.
+- MCP tools MUST publish events via Dapr after state mutation.
 
 ### VIII. Stateless AI Interactions with Persistent Memory
 
@@ -151,8 +215,143 @@ interactions.
 - AI agents MUST receive full context explicitly via message history.
 - System MUST remain resilient to server restarts.
 
-=======
->>>>>>> origin/phase-IV
+Now extended:
+
+- AI agents MUST remain stateless.
+- Microservices MUST remain stateless.
+- Event consumers MUST derive all state from database or event payload.
+- System MUST tolerate pod restarts without data loss.
+
+### IX. Event-Driven Architecture & Pub/Sub Discipline
+
+Phase V introduces event-driven architecture.
+
+Mandatory Rules:
+
+- All cross-service communication MUST occur via Pub/Sub.
+- Direct HTTP calls between microservices are discouraged.
+- Events MUST follow versioned schemas.
+
+Each topic MUST have:
+
+- Defined producer
+- Defined consumers
+- Defined schema
+
+Event payload MUST include:
+
+- `event_id`
+- `event_type`
+- `user_id`
+- `timestamp`
+- `version`
+
+Core Topics:
+
+- `task-events`
+- `reminders`
+- `notifications`
+
+No undocumented topic may exist.
+
+### X. Cloud-Native & Deployability Requirements
+
+All services MUST:
+
+- Be containerized
+- Be independently deployable
+- Support horizontal scaling
+- Have health checks
+- Be Kubernetes-compatible
+
+Dapr MUST be enabled per service.
+
+Helm charts MUST exist for:
+
+- Backend
+- Recurring Service
+- Notification Service
+- Kafka
+- Dapr components
+
+CI/CD MUST:
+
+- Run tests
+- Build images
+- Push to registry
+- Deploy via pipeline
+
+### XI. Backward Compatibility & Additive Evolution
+
+Phase V MUST NOT break Phase IV.
+
+- REST CRUD operations remain functional.
+- AI chatbot remains additive.
+- Event system enhances — does not replace — CRUD.
+- Database migrations MUST be backward compatible.
+
+## Advanced Todo Domain Rules
+
+Phase V introduces intermediate and advanced features.
+
+### Intermediate Features
+
+- **Priority**: `low | medium | high`
+- **Tags**: many-to-many relationship
+- **Search**: title, description, tags
+- **Filtering**
+- **Sorting**
+
+### Advanced Features
+
+- **due_at**: UTC datetime
+- **is_recurring**: boolean flag
+- **recurrence_pattern**: cron or human-readable pattern
+- **Reminder scheduling**: via Dapr Jobs or events
+- **Recurring regeneration**: on completion
+
+All advanced features MUST:
+
+- Be optional
+- Preserve existing task schema compatibility
+- Emit events on mutation
+
+## Microservices Architecture Rules
+
+Phase V services:
+
+- Core Backend Service
+- Recurring Task Service
+- Notification Service
+
+Rules:
+
+- Each service has single responsibility.
+- No shared database session across services.
+- Communication via Pub/Sub only.
+- Each service MUST validate incoming event schema.
+
+## Dapr Abstraction Requirements
+
+Dapr is the mandatory abstraction layer.
+
+Services MUST:
+
+- Publish via Dapr PubSub API
+- Subscribe via Dapr topic subscription
+- Use Dapr State Store abstraction
+- Retrieve secrets via Dapr secrets API (in Kubernetes)
+
+Direct Kafka client usage is prohibited.
+
+## Kafka Integration Policy
+
+Kafka is infrastructure, not application logic.
+
+- Kafka config lives in Dapr component YAML.
+- Application services MUST remain Kafka-agnostic.
+- Switching Kafka → Redpanda → Cloud PubSub MUST require no code changes.
+
 ## Technology Constraints
 
 The following stack is mandatory for this project. Deviations require an
@@ -165,11 +364,10 @@ ADR with explicit justification.
 | ORM            | SQLModel                    | `fastapi-backend`        |
 | Database       | Neon Serverless PostgreSQL  | `neon-postgres-manager`  |
 | Authentication | Better Auth with JWT        | `auth-security`          |
-<<<<<<< HEAD
 | AI Agent SDK   | OpenAI Agents SDK           | `fastapi-backend`        |
 | MCP Server     | Official MCP SDK            | `fastapi-backend`        |
-=======
->>>>>>> origin/phase-IV
+| Event Bus      | Apache Kafka (via Dapr)     | `fastapi-backend`        |
+| Runtime        | Dapr                        | `fastapi-backend`        |
 | Spec-Driven    | Claude Code + Spec-Kit Plus | N/A                      |
 
 ### Authentication Flow
@@ -180,7 +378,6 @@ ADR with explicit justification.
 4. Backend identifies user → decodes token for user ID, email, etc.
 5. Backend filters data → returns only resources belonging to that user
 
-<<<<<<< HEAD
 ### AI & MCP Constraints
 
 #### Model Context Protocol (MCP)
@@ -190,6 +387,7 @@ ADR with explicit justification.
   - Be stateless
   - Accept all required data as parameters
   - Persist all state changes to the database
+  - Publish events via Dapr after state mutation
 - MCP server MUST NOT:
   - Access frontend state
   - Maintain session memory
@@ -205,9 +403,8 @@ ADR with explicit justification.
 - Agents MUST NOT:
   - Perform direct database queries
   - Assume implicit state
+  - Access Kafka directly
 
-=======
->>>>>>> origin/phase-IV
 ### Loose Coupling Requirements
 
 - Frontend and backend MUST communicate only via REST API; no shared
@@ -215,32 +412,33 @@ ADR with explicit justification.
 - Backend and database MUST communicate only via SQLModel ORM; no raw
   SQL unless justified by an ADR.
 - Frontend MUST NOT directly access the database.
-<<<<<<< HEAD
 - AI agents MUST interact with data exclusively through MCP tools; no
   direct database access from agent logic.
 - All security-sensitive logic MUST reside in the backend and be
   verifiable and auditable.
+- Microservices MUST communicate only via Dapr Pub/Sub; no direct HTTP
+  calls between services.
 
 ### Compatibility Guarantee
 
 - All Phase-2 REST APIs remain valid and unchanged.
 - The AI chatbot is an **additive interface**, not a replacement.
 - Manual Todo CRUD via REST MUST continue to work independently.
+- Event-driven features enhance but do not replace existing functionality.
 
-=======
-- All security-sensitive logic MUST reside in the backend and be
-  verifiable and auditable.
-
->>>>>>> origin/phase-IV
 ## Development Workflow
 
-### Agentic Dev Stack Process
+### Agentic Dev Stack Process (Phase V Expanded)
 
 1. **Specify** (`/sp.specify`): Write feature spec from user description.
 2. **Plan** (`/sp.plan`): Generate architectural plan from spec.
 3. **Tasks** (`/sp.tasks`): Break plan into ordered, testable tasks.
 4. **Implement** (`/sp.implement`): Execute tasks via Claude Code agents.
-5. **Review**: Validate against spec acceptance criteria.
+5. **Integration Test**: Multi-service validation.
+6. **Event Validation**: Verify event publishing and consumption.
+7. **Cloud Deploy Validation**: Confirm deployment success.
+
+No direct coding outside this flow.
 
 ### Agent Routing for Skills
 
@@ -249,32 +447,44 @@ ADR with explicit justification.
 - `database-skill` → `neon-postgres-manager` agent
 - `backend-skill` → `fastapi-backend` agent
 
-### Quality Gates
+### Quality Gates (Expanded)
+
+Before merge:
 
 - All features MUST be derived from written specs and plans.
 - All API endpoints MUST be RESTful and user-scoped.
 - Authentication MUST be enforced via JWT on every protected route.
 - Frontend, backend, and database MUST remain loosely coupled.
 - All security-sensitive logic MUST be verifiable and auditable.
-<<<<<<< HEAD
 - AI agents MUST operate exclusively through MCP tools for state mutation.
 - MCP tools MUST be stateless and database-backed.
 - AI interactions MUST NOT retain in-memory state between requests.
-=======
->>>>>>> origin/phase-IV
+- REST endpoints verified.
+- Event publishing verified.
+- Event consumption verified.
+- Recurring logic verified.
+- No direct Kafka imports.
+- All services stateless.
+- All specs traceable.
 
-### Success Criteria
+### Success Criteria (Phase V)
+
+System MUST demonstrate:
 
 - All 5 basic Todo features work for multiple users.
 - Users can only access and modify their own tasks.
 - All API requests require valid JWT authentication.
 - Data persists correctly in PostgreSQL.
 - System can be reviewed and evaluated spec-by-spec.
-<<<<<<< HEAD
 - AI chatbot can manage tasks via natural language through MCP tools.
 - Existing REST API continues to function independently of AI chatbot.
-=======
->>>>>>> origin/phase-IV
+- Advanced task features working (priority, due_at, tags, recurrence).
+- Recurring tasks auto-generated on completion.
+- Reminder events triggered reliably.
+- Notifications processed by notification service.
+- Event-driven architecture functioning correctly.
+- Services independently scalable.
+- Full cloud deploy success.
 
 ## Governance
 
@@ -284,17 +494,17 @@ constraints. All specs, plans, tasks, and implementations MUST comply.
 - **Amendments**: Any change to this constitution MUST be documented with
   a rationale, approved by the project owner, and versioned.
 - **Versioning**: Follows semantic versioning — MAJOR for principle
-  removals or redefinitions, MINOR for additions or material expansions,
-  PATCH for clarifications and wording fixes.
+  removals or redefinitions (including architectural shifts), MINOR for
+  additions or material expansions, PATCH for clarifications and wording
+  fixes.
 - **Compliance**: Every PR and code review MUST verify alignment with
   these principles. Violations MUST be resolved before merge.
 - **ADRs**: Architecturally significant decisions MUST be documented via
-  `/sp.adr` with explicit tradeoff analysis.
+  `/sp.adr` with explicit tradeoff analysis. ADR required for deviations
+  from Dapr abstraction.
 - **Runtime Guidance**: See `CLAUDE.md` for agent-specific development
   guidance and tool routing.
+- **CI/CD & Cloud Governance**: All amendments require documented rationale.
+  All services MUST remain spec-traceable.
 
-<<<<<<< HEAD
-**Version**: 1.1.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-05
-=======
-**Version**: 1.0.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-27
->>>>>>> origin/phase-IV
+**Version**: 2.0.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-13

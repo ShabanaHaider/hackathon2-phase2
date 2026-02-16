@@ -1,0 +1,14 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub-kafka
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  - name: brokers
+    value: "localhost:9092"  # Will be overridden in production
+  - name: consumerGroup
+    value: "todo-app-group"
+  - name: authRequired
+    value: false  # Will be set to true in production

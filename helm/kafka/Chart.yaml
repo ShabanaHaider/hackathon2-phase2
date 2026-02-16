@@ -1,0 +1,9 @@
+apiVersion: v2
+name: todo-kafka
+description: Kafka for Todo App event bus
+version: 0.1.0
+
+dependencies:
+  - name: kafka
+    version: "26.x.x"
+    repository: https://charts.bitnami.com/bitnami

@@ -1,0 +1,318 @@
+openapi: 3.1.0
+info:
+  title: Tasks API (Extended)
+  version: 2.0.0
+  description: Extended Task API with priority, tags, filtering, sorting, search, due dates, and recurrence
+
+paths:
+  /api/todos:
+    get:
+      summary: List tasks with filtering, sorting, and search
+      operationId: listTasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed, all]
+            default: all
+          description: Filter by completion status
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high]
+          description: Filter by priority level
+        - name: tag
+          in: query
+          schema:
+            type: string
+          description: Filter by tag name
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+          description: Search query (searches title, description, tags)
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [created_at, due_at, priority, title]
+            default: created_at
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort direction
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create a new task
+      operationId: createTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/todos/{task_id}:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get a single task
+      operationId: getTask
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update a task
+      operationId: updateTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a task
+      operationId: deleteTask
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Task deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Priority:
+      type: string
+      enum: [low, medium, high]
+      default: medium
+
+    RecurrencePattern:
+      type: string
+      enum: [daily, weekly, monthly]
+
+    TagResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - id
+        - name
+
+    TaskCreate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          $ref: '#/components/schemas/Priority'
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_recurring:
+          type: boolean
+          default: false
+        recurrence_pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+        tag_names:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 10
+      required:
+        - title
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        is_completed:
+          type: boolean
+        priority:
+          $ref: '#/components/schemas/Priority'
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_recurring:
+          type: boolean
+        recurrence_pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+        tag_names:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 10
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_completed:
+          type: boolean
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+        priority:
+          $ref: '#/components/schemas/Priority'
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_recurring:
+          type: boolean
+        recurrence_pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+      required:
+        - id
+        - title
+        - is_completed
+        - created_at
+        - updated_at
+        - user_id
+        - priority
+        - is_recurring
+        - tags
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
