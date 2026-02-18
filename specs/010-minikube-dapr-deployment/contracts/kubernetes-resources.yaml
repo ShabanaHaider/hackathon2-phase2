@@ -1,0 +1,64 @@
+# Kubernetes Resource Contracts for Minikube Deployment
+# These define the infrastructure resources in the phase-v namespace
+
+---
+# Redis Deployment (Pub/Sub + State Store)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: phase-v
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+          name: redis
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: phase-v
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+
+---
+# Application Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+  namespace: phase-v
+type: Opaque
+stringData:
+  DATABASE_URL: "placeholder-replace-with-actual-neon-url"
+  BETTER_AUTH_SECRET: "placeholder-replace-with-actual-secret"
+  BETTER_AUTH_URL: "http://frontend:3000"
+  CORS_ORIGINS: "http://localhost:3000,http://frontend:3000"

@@ -16,11 +16,24 @@ function isOverdue(task: Task): boolean {
   return new Date(task.due_at) < new Date();
 }
 
+function toLocalDatetimeString(isoString: string): string {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 function formatDueDate(dueAt: string): string {
   const date = new Date(dueAt);
   const now = new Date();
-  const diff = date.getTime() - now.getTime();
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+  // Compare calendar dates (ignoring time) to avoid rounding issues
+  const dueDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((dueDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   if (days < 0) return `${Math.abs(days)}d overdue`;
   if (days === 0) return "Due today";
@@ -34,7 +47,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   const [editDescription, setEditDescription] = useState(task.description || "");
   const [editPriority, setEditPriority] = useState(task.priority);
   const [editDueAt, setEditDueAt] = useState(
-    task.due_at ? new Date(task.due_at).toISOString().slice(0, 16) : ""
+    task.due_at ? toLocalDatetimeString(task.due_at) : ""
   );
   const [editTagNames, setEditTagNames] = useState<string[]>(task.tags?.map((t) => t.name) || []);
   const [isLoading, setIsLoading] = useState(false);
@@ -92,7 +105,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     setEditTitle(task.title);
     setEditDescription(task.description || "");
     setEditPriority(task.priority);
-    setEditDueAt(task.due_at ? new Date(task.due_at).toISOString().slice(0, 16) : "");
+    setEditDueAt(task.due_at ? toLocalDatetimeString(task.due_at) : "");
     setEditTagNames(task.tags?.map((t) => t.name) || []);
     setIsEditing(false);
     setError("");

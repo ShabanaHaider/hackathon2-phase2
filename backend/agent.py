@@ -93,6 +93,28 @@ TOOLS = [
                     "description": {
                         "type": "string",
                         "description": "Optional description of the task (max 2000 characters)"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high"],
+                        "description": "Task priority level (default: medium)"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "description": "Due date in ISO 8601 format (e.g. '2026-03-01T10:00:00Z')"
+                    },
+                    "is_recurring": {
+                        "type": "boolean",
+                        "description": "Whether task recurs after completion"
+                    },
+                    "recurrence_pattern": {
+                        "type": "string",
+                        "enum": ["daily", "weekly", "monthly"],
+                        "description": "Recurrence frequency (required if is_recurring=true)"
+                    },
+                    "tags": {
+                        "type": "string",
+                        "description": "Comma-separated tag names (e.g. 'work,urgent')"
                     }
                 },
                 "required": ["title"]
@@ -103,10 +125,25 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "list_tasks",
-            "description": "List all tasks for the user. Use when user wants to see, view, list, or check their tasks.",
+            "description": "List tasks for the user with optional filters. Use when user wants to see, view, list, or check their tasks. Supports filtering by status, priority, and tag.",
             "parameters": {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["pending", "completed"],
+                        "description": "Filter by status: 'pending' for incomplete tasks, 'completed' for done tasks"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high"],
+                        "description": "Filter by priority level"
+                    },
+                    "tag": {
+                        "type": "string",
+                        "description": "Filter by tag name"
+                    }
+                },
                 "required": []
             }
         }
@@ -115,7 +152,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "update_task",
-            "description": "Update the title or description of an existing task. Use when user wants to change, rename, or edit a task. Requires task_id - call list_tasks first to find it.",
+            "description": "Update fields of an existing task. Use when user wants to change priority, title, description, due date, tags, or recurrence. Requires task_id - call list_tasks first to find it.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -130,6 +167,28 @@ TOOLS = [
                     "description": {
                         "type": "string",
                         "description": "New description for the task (max 2000 characters)"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high"],
+                        "description": "New priority level"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "description": "New due date in ISO 8601 format (e.g. '2026-03-01T10:00:00Z'), or 'none' to clear"
+                    },
+                    "is_recurring": {
+                        "type": "boolean",
+                        "description": "Whether the task should recur after completion"
+                    },
+                    "recurrence_pattern": {
+                        "type": "string",
+                        "enum": ["daily", "weekly", "monthly"],
+                        "description": "Recurrence frequency, or 'none' to clear"
+                    },
+                    "tags": {
+                        "type": "string",
+                        "description": "Comma-separated tag names to replace current tags, or 'none' to clear all"
                     }
                 },
                 "required": ["task_id"]
@@ -200,15 +259,30 @@ def execute_tool(tool_name: str, arguments: dict, user_id: str) -> str:
             user_id=user_id,
             title=arguments.get("title", ""),
             description=arguments.get("description"),
+            priority=arguments.get("priority"),
+            due_date=arguments.get("due_date"),
+            is_recurring=arguments.get("is_recurring"),
+            recurrence_pattern=arguments.get("recurrence_pattern"),
+            tags=arguments.get("tags"),
         )
     elif tool_name == "list_tasks":
-        return list_tasks(user_id=user_id)
+        return list_tasks(
+            user_id=user_id,
+            status=arguments.get("status"),
+            priority=arguments.get("priority"),
+            tag=arguments.get("tag"),
+        )
     elif tool_name == "update_task":
         return update_task(
             user_id=user_id,
             task_id=arguments.get("task_id", ""),
             title=arguments.get("title"),
             description=arguments.get("description"),
+            priority=arguments.get("priority"),
+            due_date=arguments.get("due_date"),
+            is_recurring=arguments.get("is_recurring"),
+            recurrence_pattern=arguments.get("recurrence_pattern"),
+            tags=arguments.get("tags"),
         )
     elif tool_name == "complete_task":
         return complete_task(
@@ -356,8 +430,20 @@ async def run_agent(
                         tool_name, result, tool_info = parsed
                         collected_tool_calls.append(tool_info)
                         print(f"[TOOL CALL] {tool_name} | args={tool_info['arguments']} | duration={tool_info['duration_ms']}ms")
-                        title = tool_info['arguments'].get('title', 'your task')
-                        return (f"I've added '{title}' to your task list.", collected_tool_calls)
+                        # Generate appropriate response based on which tool was called
+                        if tool_name == "add_task":
+                            title = tool_info['arguments'].get('title', 'your task')
+                            return (f"I've added '{title}' to your task list.", collected_tool_calls)
+                        elif tool_name == "list_tasks":
+                            return (result, collected_tool_calls)
+                        elif tool_name == "complete_task":
+                            return (result, collected_tool_calls)
+                        elif tool_name == "delete_task":
+                            return (result, collected_tool_calls)
+                        elif tool_name == "update_task":
+                            return (result, collected_tool_calls)
+                        else:
+                            return (result, collected_tool_calls)
                 raise  # Re-raise if we can't handle it
 
             # Check if the model wants to call tools

@@ -1,0 +1,69 @@
+# Dapr Component Contracts for Minikube Deployment
+# These define the Dapr building blocks required in the phase-v namespace
+
+---
+# Pub/Sub Component - Redis
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub-redis
+  namespace: phase-v
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: "redis.phase-v.svc.cluster.local:6379"
+  - name: redisPassword
+    value: ""
+  - name: consumerID
+    value: "todo-app"
+  - name: enableTLS
+    value: "false"
+
+---
+# State Store Component - Redis
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: phase-v
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: "redis.phase-v.svc.cluster.local:6379"
+  - name: redisPassword
+    value: ""
+  - name: actorStateStore
+    value: "false"
+
+---
+# Secrets Store Component - Kubernetes
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kubernetes-secrets
+  namespace: phase-v
+spec:
+  type: secretstores.kubernetes
+  version: v1
+
+---
+# Cron Binding - Overdue Task Checker
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: cron-check-overdue
+  namespace: phase-v
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+  - name: schedule
+    value: "@every 5m"
+  - name: direction
+    value: "input"
+scopes:
+  - recurring-task-service

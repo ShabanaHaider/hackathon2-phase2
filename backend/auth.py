@@ -11,7 +11,7 @@ from typing import Any
 
 import httpx
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,9 @@ _jwks_cache: dict[str, Any] = {}
 _cached_keys: dict[str, Any] = {}
 
 security = HTTPBearer(auto_error=False)
+
+# Trusted Dapr app IDs for internal service-to-service calls
+TRUSTED_DAPR_APPS = {"recurring-task-service", "notification-service"}
 
 
 async def fetch_jwks() -> dict[str, Any]:
@@ -91,15 +94,25 @@ def get_public_key_from_jwks(jwks: dict[str, Any], kid: str | None = None) -> An
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> dict[str, Any]:
     """
     FastAPI dependency that extracts and verifies the JWT token.
 
+    Also supports internal Dapr service-to-service calls via dapr-app-id
+    and X-User-ID headers from trusted services.
+
     Returns a dict with user_id and email from the token payload.
     Raises HTTPException 401 for missing, invalid, or expired tokens.
     """
+    # Internal Dapr service-to-service auth
     if credentials is None:
+        dapr_app_id = request.headers.get("dapr-app-id")
+        user_id = request.headers.get("x-user-id")
+        if dapr_app_id in TRUSTED_DAPR_APPS and user_id:
+            logger.info("Internal call from %s for user %s", dapr_app_id, user_id)
+            return {"user_id": user_id, "email": None}
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",

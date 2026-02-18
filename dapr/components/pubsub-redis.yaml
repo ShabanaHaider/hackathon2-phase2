@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub-redis
+  namespace: phase-v
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: "redis.phase-v.svc.cluster.local:6379"
+  - name: redisPassword
+    value: ""
+  - name: consumerID
+    value: "todo-app"
+  - name: enableTLS
+    value: "false"

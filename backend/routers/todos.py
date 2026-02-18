@@ -47,8 +47,8 @@ async def create_task(
         updated_at=now,
     )
     session.add(task)
-    await session.commit()
-    await session.refresh(task)
+    await session.flush()
+    task_id = task.id
 
     # Handle tags if provided
     if body.tag_names:
@@ -69,15 +69,17 @@ async def create_task(
                     created_at=now
                 )
                 session.add(tag)
-                await session.commit()
-                await session.refresh(tag)
+                await session.flush()
 
             # Create the relationship
-            task_tag_link = TaskTagLink(task_id=task.id, tag_id=tag.id)
+            task_tag_link = TaskTagLink(task_id=task_id, tag_id=tag.id)
             session.add(task_tag_link)
 
-        await session.commit()
-        await session.refresh(task)  # Refresh to get the tags
+    await session.commit()
+
+    # Re-query with selectin loading for tags relationship
+    result = await session.exec(select(Task).where(Task.id == task_id))
+    task = result.one()
 
     # Publish event
     task_response = TaskResponse.model_validate(task)
@@ -216,13 +218,12 @@ async def update_task(
     task.updated_at = _utcnow()
 
     session.add(task)
-    await session.commit()
-    await session.refresh(task)
+    await session.flush()
 
     # Handle tags if tag_names was explicitly provided
     if tag_names is not None:
         # Remove existing tag associations
-        delete_stmt = select(TaskTagLink).where(TaskTagLink.task_id == task.id)
+        delete_stmt = select(TaskTagLink).where(TaskTagLink.task_id == task_id)
         existing_links = await session.exec(delete_stmt)
         for link in existing_links:
             await session.delete(link)
@@ -247,15 +248,17 @@ async def update_task(
                         created_at=now
                     )
                     session.add(tag)
-                    await session.commit()
-                    await session.refresh(tag)
+                    await session.flush()
 
                 # Create the relationship
-                task_tag_link = TaskTagLink(task_id=task.id, tag_id=tag.id)
+                task_tag_link = TaskTagLink(task_id=task_id, tag_id=tag.id)
                 session.add(task_tag_link)
 
-        await session.commit()
-        await session.refresh(task)  # Refresh to get the tags
+    await session.commit()
+
+    # Re-query with selectin loading for tags relationship
+    result = await session.exec(select(Task).where(Task.id == task_id))
+    task = result.one()
 
     # Publish event — use task.completed if is_completed changed to True
     task_response = TaskResponse.model_validate(task)

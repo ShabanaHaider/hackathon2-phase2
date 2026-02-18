@@ -2,16 +2,22 @@ apiVersion: dapr.io/v2alpha1
 kind: Subscription
 metadata:
   name: notification-reminders-sub
+scopes:
+- notification-service
 spec:
   pubsubname: pubsub-kafka
   topic: reminders
-  route: /events/reminder-due
+  routes:
+    default: /events/reminder-due
 ---
 apiVersion: dapr.io/v2alpha1
 kind: Subscription
 metadata:
   name: notification-notifications-sub
+scopes:
+- notification-service
 spec:
   pubsubname: pubsub-kafka
   topic: notifications
-  route: /events/notification
+  routes:
+    default: /events/notification

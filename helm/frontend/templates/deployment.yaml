@@ -13,50 +13,41 @@ spec:
     metadata:
       labels:
         app: {{ .Chart.Name }}
-      annotations:
-        {{- if .Values.dapr.enabled }}
-        dapr.io/enabled: "true"
-        dapr.io/app-id: {{ .Values.dapr.appId | quote }}
-        dapr.io/app-port: {{ .Values.dapr.appPort | quote }}
-        dapr.io/log-level: "info"
-        {{- end }}
     spec:
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-        - containerPort: {{ .Values.dapr.appPort }}
+        - containerPort: {{ .Values.service.port }}
           name: http
         env:
-        - name: DAPR_HTTP_PORT
-          value: {{ .Values.env.DAPR_HTTP_PORT | quote }}
-        - name: PUBSUB_NAME
-          value: {{ .Values.env.PUBSUB_NAME | quote }}
+        - name: NEXT_PUBLIC_API_URL
+          value: {{ .Values.env.NEXT_PUBLIC_API_URL | quote }}
         - name: BETTER_AUTH_URL
           value: {{ .Values.env.BETTER_AUTH_URL | quote }}
-        - name: CORS_ORIGINS
-          value: {{ .Values.env.CORS_ORIGINS | quote }}
+        - name: NODE_ENV
+          value: {{ .Values.env.NODE_ENV | quote }}
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: BETTER_AUTH_SECRET
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
               key: DATABASE_URL
-        - name: GROQ_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.secrets.name }}
-              key: GROQ_API_KEY
         livenessProbe:
           httpGet:
-            path: /health
-            port: {{ .Values.dapr.appPort }}
+            path: /
+            port: {{ .Values.service.port }}
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health
-            port: {{ .Values.dapr.appPort }}
+            path: /
+            port: {{ .Values.service.port }}
           initialDelaySeconds: 10
           periodSeconds: 5
         resources:

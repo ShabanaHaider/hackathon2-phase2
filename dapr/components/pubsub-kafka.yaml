@@ -2,13 +2,16 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: pubsub-kafka
+  namespace: phase-v
 spec:
   type: pubsub.kafka
   version: v1
   metadata:
   - name: brokers
-    value: "localhost:9092"  # Will be overridden in production
-  - name: consumerGroup
-    value: "todo-app-group"
-  - name: authRequired
-    value: false  # Will be set to true in production
+    value: "kafka.phase-v.svc.cluster.local:9092"
+  - name: consumerID
+    value: "{appID}"
+  - name: authType
+    value: "none"
+  - name: initialOffset
+    value: "newest"

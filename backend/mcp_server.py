@@ -282,12 +282,20 @@ def add_task(
 
 
 @mcp.tool()
-def list_tasks(user_id: str) -> str:
+def list_tasks(
+    user_id: str,
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    tag: Optional[str] = None,
+) -> str:
     """
-    List all tasks for a user.
+    List tasks for a user with optional filters.
 
     Args:
         user_id: The authenticated user's ID
+        status: Filter by status - "pending" or "completed" (default: all)
+        priority: Filter by priority - "low", "medium", or "high" (default: all)
+        tag: Filter by tag name (default: all)
 
     Returns:
         Formatted list of tasks, or message if no tasks found
@@ -301,8 +309,23 @@ def list_tasks(user_id: str) -> str:
             statement = (
                 select(Task)
                 .where(Task.user_id == user_id.strip())
-                .order_by(Task.created_at.desc())
             )
+
+            # Apply filters
+            if status:
+                if status.lower() == "pending":
+                    statement = statement.where(Task.is_completed == False)
+                elif status.lower() == "completed":
+                    statement = statement.where(Task.is_completed == True)
+
+            if priority:
+                if priority.lower() in VALID_PRIORITIES:
+                    statement = statement.where(Task.priority == priority.lower())
+
+            if tag:
+                statement = statement.join(TaskTagLink).join(Tag).where(Tag.name == tag.strip())
+
+            statement = statement.order_by(Task.created_at.desc())
             tasks = session.exec(statement).all()
 
             if not tasks:

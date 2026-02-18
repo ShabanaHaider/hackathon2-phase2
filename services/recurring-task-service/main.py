@@ -97,7 +97,7 @@ async def create_task_via_backend(user_id: str, task_data: NewTaskRequest) -> di
             response = await client.post(
                 dapr_url,
                 json=task_data.model_dump(mode="json"),
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json", "X-User-ID": user_id}
             )
             response.raise_for_status()
             logger.info("Task created successfully via Dapr")
@@ -108,7 +108,7 @@ async def create_task_via_backend(user_id: str, task_data: NewTaskRequest) -> di
             response = await client.post(
                 direct_url,
                 json=task_data.model_dump(mode="json"),
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json", "X-User-ID": user_id}
             )
             response.raise_for_status()
             logger.info("Task created successfully via direct call")
@@ -124,6 +124,13 @@ async def health_check():
         "timestamp": datetime.utcnow().isoformat(),
         "processed_events": len(processed_events)
     }
+
+
+@app.post("/cron-check-overdue")
+async def handle_cron_check_overdue(request: Request):
+    """Handle Dapr cron binding invocation to check for overdue tasks."""
+    logger.info("Cron binding invoked: check-overdue at %s", datetime.utcnow().isoformat())
+    return {"status": "ok"}
 
 
 @app.post("/events/task-completed", response_model=DaprResponse)

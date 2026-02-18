@@ -11,7 +11,7 @@ interface FilterBarProps {
 export default function FilterBar({ filters, onChange }: FilterBarProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [searchInput, setSearchInput] = useState(filters.q || "");
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     api.listTags().then(setTags).catch(() => {});

@@ -11,6 +11,22 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+async function getFreshToken(): Promise<string | null> {
+  try {
+    const response = await fetch('/api/auth/token', {
+      method: 'GET',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data?.token || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Custom error class for chat API errors
  */
@@ -58,12 +74,16 @@ export class ChatError extends Error {
 export async function sendChatMessage(
   userId: string,
   message: string,
-  token: string
+  _token?: string
 ): Promise<ChatResponse> {
+  const freshToken = await getFreshToken();
+  if (!freshToken) {
+    throw new ChatError(401, 'Not authenticated');
+  }
   const response = await fetch(`${API_URL}/api/${userId}/chat`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${freshToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ message }),
@@ -81,11 +101,15 @@ export async function sendChatMessage(
  * Get all conversations for the current user
  * GET /api/conversations
  */
-export async function getConversations(token: string): Promise<Conversation[]> {
+export async function getConversations(_token?: string): Promise<Conversation[]> {
+  const freshToken = await getFreshToken();
+  if (!freshToken) {
+    throw new ChatError(401, 'Not authenticated');
+  }
   const response = await fetch(`${API_URL}/api/conversations`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${freshToken}`,
     },
   });
 
@@ -102,14 +126,18 @@ export async function getConversations(token: string): Promise<Conversation[]> {
  */
 export async function getMessages(
   conversationId: string,
-  token: string
+  _token?: string
 ): Promise<MessageResponse[]> {
+  const freshToken = await getFreshToken();
+  if (!freshToken) {
+    throw new ChatError(401, 'Not authenticated');
+  }
   const response = await fetch(
     `${API_URL}/api/conversations/${conversationId}/messages`,
     {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${freshToken}`,
       },
     }
   );
