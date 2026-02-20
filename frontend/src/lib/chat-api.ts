@@ -9,7 +9,7 @@ import type {
   MessageResponse,
 } from '@/types/chat';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 async function getFreshToken(): Promise<string | null> {
   try {

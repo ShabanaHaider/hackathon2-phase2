@@ -175,6 +175,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
                 value={editPriority}
                 onChange={(e) => setEditPriority(e.target.value as "low" | "medium" | "high")}
                 disabled={isLoading}
+                aria-label="Priority"
                 className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
                 <option value="low">Low</option>
@@ -189,6 +190,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
                 value={editDueAt}
                 onChange={(e) => setEditDueAt(e.target.value)}
                 disabled={isLoading}
+                aria-label="Due date"
                 className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
               />
             </div>

@@ -222,9 +222,9 @@ export default function ChatContainer({ userId, token, onTaskChange }: ChatConta
   const showEmptyState = !isLoadingHistory && messages.length === 0;
 
   return (
-    <div className="flex flex-col h-[500px] md:h-[600px] bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-125 md:h-150 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <div className="shrink-0 px-4 py-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <svg
@@ -262,14 +262,14 @@ export default function ChatContainer({ userId, token, onTaskChange }: ChatConta
 
       {/* Global error banner */}
       {error && !messages.some((m) => m.status === 'error') && (
-        <div className="flex-shrink-0 px-4 py-2 bg-red-50 border-b border-red-100">
+        <div className="shrink-0 px-4 py-2 bg-red-50 border-b border-red-100">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
 
       {/* Offline banner */}
       {isOffline && (
-        <div className="flex-shrink-0 px-4 py-2 bg-orange-50 border-b border-orange-100">
+        <div className="shrink-0 px-4 py-2 bg-orange-50 border-b border-orange-100">
           <p className="text-sm text-orange-600">
             You're offline. Messages will send when you're back online.
           </p>

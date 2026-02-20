@@ -108,7 +108,12 @@ async def get_current_user(
     """
     # Internal Dapr service-to-service auth
     if credentials is None:
-        dapr_app_id = request.headers.get("dapr-app-id")
+        # Dapr uses dapr-caller-app-id for service invocation;
+        # direct calls may use dapr-app-id as a fallback identifier.
+        dapr_app_id = (
+            request.headers.get("dapr-caller-app-id")
+            or request.headers.get("dapr-app-id")
+        )
         user_id = request.headers.get("x-user-id")
         if dapr_app_id in TRUSTED_DAPR_APPS and user_id:
             logger.info("Internal call from %s for user %s", dapr_app_id, user_id)

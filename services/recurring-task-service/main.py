@@ -91,13 +91,27 @@ async def create_task_via_backend(user_id: str, task_data: NewTaskRequest) -> di
     dapr_url = f"http://localhost:{DAPR_HTTP_PORT}/v1.0/invoke/backend/method/api/todos"
     direct_url = f"{BACKEND_URL}/api/todos"
 
+    # Dapr invoke: do NOT set dapr-app-id header — Dapr uses the URL path for
+    # routing and automatically sets dapr-caller-app-id for the target service.
+    dapr_headers = {
+        "Content-Type": "application/json",
+        "X-User-ID": user_id,
+    }
+
+    # Direct call: include dapr-app-id for backend auth (no Dapr sidecar in path).
+    direct_headers = {
+        "Content-Type": "application/json",
+        "X-User-ID": user_id,
+        "dapr-app-id": "recurring-task-service",
+    }
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
             logger.info("Attempting to create task via Dapr service invocation")
             response = await client.post(
                 dapr_url,
                 json=task_data.model_dump(mode="json"),
-                headers={"Content-Type": "application/json", "X-User-ID": user_id}
+                headers=dapr_headers,
             )
             response.raise_for_status()
             logger.info("Task created successfully via Dapr")
@@ -108,7 +122,7 @@ async def create_task_via_backend(user_id: str, task_data: NewTaskRequest) -> di
             response = await client.post(
                 direct_url,
                 json=task_data.model_dump(mode="json"),
-                headers={"Content-Type": "application/json", "X-User-ID": user_id}
+                headers=direct_headers,
             )
             response.raise_for_status()
             logger.info("Task created successfully via direct call")

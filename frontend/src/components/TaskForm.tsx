@@ -154,6 +154,7 @@ export default function TaskForm({ onTaskCreated }: TaskFormProps) {
                   value={recurrencePattern}
                   onChange={(e) => setRecurrencePattern(e.target.value as "daily" | "weekly" | "monthly")}
                   disabled={isLoading}
+                  aria-label="Recurrence pattern"
                   className="px-3 py-1.5 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-400"
                 >
                   <option value="daily">Daily</option>

@@ -77,6 +77,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <select
           value={filters.status || ""}
           onChange={(e) => updateFilter("status", e.target.value)}
+          aria-label="Filter by status"
           className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400"
         >
           <option value="">All status</option>
@@ -88,6 +89,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <select
           value={filters.priority || ""}
           onChange={(e) => updateFilter("priority", e.target.value)}
+          aria-label="Filter by priority"
           className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400"
         >
           <option value="">All priorities</option>
@@ -100,6 +102,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <select
           value={filters.tag || ""}
           onChange={(e) => updateFilter("tag", e.target.value)}
+          aria-label="Filter by tag"
           className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400"
         >
           <option value="">All tags</option>
@@ -114,6 +117,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <select
           value={filters.sort_by || ""}
           onChange={(e) => updateFilter("sort_by", e.target.value)}
+          aria-label="Sort by"
           className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400"
         >
           <option value="">Default sort</option>
